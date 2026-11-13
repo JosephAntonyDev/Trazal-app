@@ -1,0 +1,23 @@
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Trazal.Data</AssemblyName>
+    <RootNamespace>Trazal.Data</RootNamespace>
+    <ProjectGuid>{D51722F8-99A1-4B64-9339-AB08D7B87E02}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>..\..\build\packages\sqlite\lib\net46\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <ProjectReference Include="..\Trazal.Core\Trazal.Core.csproj">
+      <Project>{D51722F8-99A1-4B64-9339-AB08D7B87E01}</Project>
+      <Name>Trazal.Core</Name>
+    </ProjectReference>
+    <Compile Include="LocalStore.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,57 @@
+using System;
+using System.IO;
+using System.Linq;
+using Trazal.Core;
+using Trazal.Data;
+using Trazal.Desktop;
+
+namespace Trazal.Tests
+{
+    internal static class Program
+    {
+        private static int passed;
+        private static void Check(string name, Action test) { test(); passed++; Console.WriteLine("OK  " + name); }
+        private static void Equal<T>(T expected, T actual) { if (!Equals(expected, actual)) throw new Exception("Esperado: " + expected + "; resultado: " + actual); }
+        private static void Reject(Action action) { try { action(); } catch (ArgumentException) { return; } throw new Exception("Se aceptó un dato inválido."); }
+        private static Concept Item(string work, decimal quantity = 100m, decimal price = 100m) => new Concept { WorkId = work, Code = "CON-001", Description = "Concreto", Unit = "m²", Quantity = quantity, UnitPrice = price };
+        [STAThread]
+        private static int Main()
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "Trazal-tests-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Check("Título y tipo obligatorios", () => { Reject(() => new Work().Validate()); Reject(() => new Work { Title = "  ", Type = Work.Types[0] }.Validate()); Reject(() => new Work { Title = "Obra" }.Validate()); });
+                Check("Obra mínima e IVA pendiente", () => new Work { Title = "Banqueta", Type = Work.Types[0] }.Validate());
+                Check("IVA fuera de rango", () => Reject(() => new Work { Title = "Obra", Type = Work.Types[0], Vat = 101 }.Validate()));
+                Check("Presupuesto exacto de 100 x 100 más IVA", () => { var t = Budget.Calculate(new[] { Item("a") }, 16); Equal(10000m, t.Subtotal); Equal((decimal?)1600m, t.Tax); Equal((decimal?)11600m, t.Total); });
+                Check("IVA desconocido diferente a cero", () => { Equal((decimal?)null, Budget.Calculate(new[] { Item("a") }, null).Total); Equal((decimal?)10000m, Budget.Calculate(new[] { Item("a") }, 0).Total); });
+                Check("Redondeo por concepto y después impuesto", () => { var a = Item("a", 3, 0.335m); Equal(1.01m, a.Amount); Equal((decimal?)1.17m, Budget.Calculate(new[] { a }, 16).Total); });
+                Check("Cantidades negativas y precisión inválida", () => { Reject(() => Item("a", -1).Validate()); Reject(() => Item("a", 0).Validate()); Reject(() => Item("a", 1.00001m).Validate()); Reject(() => Item("a", 1, -1).Validate()); });
+                Check("Precio cero explícito", () => Item("a", 1, 0).Validate());
+                Check("Perfil y correo inválido", () => { Reject(() => new Profile { FirstName = " " }.Validate()); Reject(() => new Profile { Email = "sin-arroba" }.Validate()); });
+                var file = Path.Combine(folder, "test.db");
+                var db = new LocalStore(file);
+                var w = new Work { Title = "Banqueta", Type = Work.Types[0] };
+                var w2 = new Work { Title = "Escuela", Type = Work.Types[2], Vat = 0 };
+                Check("Persistencia de obras tras reabrir", () => { db.SaveWork(w); db.SaveWork(w2); var reopened = new LocalStore(file); Equal(2, reopened.GetWorks().Count); Equal((decimal?)null, reopened.GetWorks().Single(x => x.Id == w.Id).Vat); Equal((decimal?)0, reopened.GetWorks().Single(x => x.Id == w2.Id).Vat); });
+                var c = Item(w.Id); var c2 = Item(w2.Id, 5, 123.4567m);
+                Check("Misma clave, precios independientes por obra", () => { db.SaveConcept(c); db.SaveConcept(c2); Equal(100m, db.GetConcepts(w.Id).Single().UnitPrice); Equal(123.4567m, db.GetConcepts(w2.Id).Single().UnitPrice); });
+                Check("Editar obra conserva conceptos", () => { w.Title = "Banqueta actualizada"; w.Vat = 16; db.SaveWork(w); Equal(1, db.GetConcepts(w.Id).Count); });
+                Check("Duplicado rechazado sin alterar presupuesto", () => { Reject(() => db.SaveConcept(Item(w.Id, 999))); Equal(10000m, db.GetWorks().Single(x => x.Id == w.Id).Subtotal); });
+                Check("Editar concepto actualiza solo su obra", () => { c.UnitPrice = 120; db.SaveConcept(c); Equal(12000m, db.GetWorks().Single(x => x.Id == w.Id).Subtotal); Equal(617.28m, db.GetWorks().Single(x => x.Id == w2.Id).Subtotal); });
+                Check("Rechaza mover concepto entre obras", () => { c.WorkId = w2.Id; try { db.SaveConcept(c); throw new Exception("Movimiento aceptado"); } catch (InvalidOperationException) { c.WorkId = w.Id; } });
+                Check("Perfil persiste y conserva caracteres", () => { db.SaveProfile(new Profile { FirstName = "José", LastName = "Muñoz", Company = "O'Brien", Email = "test@example.com" }); Equal("José Muñoz", new LocalStore(file).GetProfile().FullName); });
+                Check("Respaldo íntegro, reabrible e independiente", () => { var backup = Path.Combine(folder, "copia.trazal"); db.Backup(backup); var recovered = new LocalStore(backup); Equal(2, recovered.GetWorks().Count); Equal(12000m, recovered.GetWorks().Single(x => x.Id == w.Id).Subtotal); Equal("José", recovered.GetProfile().FirstName); c.UnitPrice = 130; db.SaveConcept(c); Equal(120m, recovered.GetConcepts(w.Id).Single().UnitPrice); db.Backup(backup); Equal(130m, new LocalStore(backup).GetConcepts(w.Id).Single().UnitPrice); });
+                Check("No sobrescribe base activa al respaldar", () => Reject(() => db.Backup(file)));
+                var shell = new ShellViewModel(db);
+                Check("Crear exige solo título y tipo", () => { shell.CreateWork.Execute(null); var form = shell.Dialog; Equal(false, form.Save.CanExecute(null)); form.Fields.Single(f => f.Key == "title").Value = "Obra mínima"; Equal(false, form.Save.CanExecute(null)); form.Fields.Single(f => f.Key == "type").Value = Work.Types[0]; Equal(true, form.Save.CanExecute(null)); form.Save.Execute(null); Equal(false, shell.DialogOpen); Equal(3, db.GetWorks().Count); });
+                Check("Editar sin cambios, revertir y normalizar IVA", () => { shell.EditWork(w); var form = shell.Dialog; Equal(false, form.Save.CanExecute(null)); var title = form.Fields.Single(f => f.Key == "title"); title.Value += " nueva"; Equal(true, form.Save.CanExecute(null)); title.Value = w.Title; Equal(false, form.Save.CanExecute(null)); form.Fields.Single(f => f.Key == "vat").Value = "16.00"; Equal(false, form.Save.CanExecute(null)); form.Fields.Single(f => f.Key == "vat").Value = ""; Equal(true, form.Save.CanExecute(null)); form.Cancel.Execute(null); });
+                Check("Perfil bloquea correo inválido y vuelve a bloquear al guardar", () => { shell.ShowProfile.Execute(null); var form = ((ProfileViewModel)shell.Page).Editor; Equal(false, form.Save.CanExecute(null)); var email = form.Fields.Single(f => f.Key == "email"); email.Value = "mal"; Equal(false, form.Save.CanExecute(null)); email.Value = "otro@example.com"; Equal(true, form.Save.CanExecute(null)); form.Save.Execute(null); Equal(false, ((ProfileViewModel)shell.Page).Editor.Save.CanExecute(null)); });
+                Check("Buscar ignora acentos y combina filtro de tipo", () => { db.SaveWork(new Work { Title = "Drenáje de prueba", Type = Work.Types[1] }); shell.Home.Execute(null); var home = (HomeViewModel)shell.Page; home.Search = "DRENAJE"; Equal(1, home.Items.Count); home.Type = Work.Types[2]; Equal(0, home.Items.Count); });
+                Console.WriteLine(passed + " pruebas aprobadas."); return 0;
+            }
+            catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+            finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+        }
+    }
+}

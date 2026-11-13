@@ -1,0 +1,16 @@
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Trazal.Core</AssemblyName>
+    <RootNamespace>Trazal.Core</RootNamespace>
+    <ProjectGuid>{D51722F8-99A1-4B64-9339-AB08D7B87E01}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Compile Include="Models.cs" />
+    <Compile Include="Budget.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

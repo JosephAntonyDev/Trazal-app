@@ -1,0 +1,15 @@
+build/packages/
+artifacts/
+**/bin/
+**/obj/
+.vs/
+.qa/
+*.user
+*_wpftmp.csproj
+*.db
+*.db-*
+*.trazal
+*.xls
+*.xlsx
+*.pfx
+*.key
