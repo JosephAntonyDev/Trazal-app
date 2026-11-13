@@ -20,11 +20,19 @@
                   <DataTrigger Binding="{Binding IsChoice}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
                   </DataTrigger>
+                  <DataTrigger Binding="{Binding IsDate}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
                 </Style.Triggers>
               </Style>
             </TextBox.Style>
           </TextBox>
           <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding Value,UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding IsChoice,Converter={StaticResource BoolVisibility}}" AutomationProperties.Name="{Binding Label}" />
+          <DatePicker SelectedDate="{Binding DateValue,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" SelectedDateFormat="Short" Visibility="{Binding IsDate,Converter={StaticResource BoolVisibility}}" MinHeight="46" FontSize="16" Foreground="{DynamicResource Ink}" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" AutomationProperties.Name="{Binding Label}" ToolTip="Selecciona la fecha con el botón del calendario.">
+            <DatePicker.Resources>
+              <Style TargetType="DatePickerTextBox"><Setter Property="IsReadOnly" Value="True"/><Setter Property="Foreground" Value="{DynamicResource Ink}"/><Setter Property="Background" Value="{DynamicResource Surface}"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+            </DatePicker.Resources>
+          </DatePicker>
           <TextBlock Text="{Binding Placeholder}" Foreground="{DynamicResource Muted}" Margin="13,0,38,0" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" IsHitTestVisible="False" Focusable="False">
             <TextBlock.Style>
               <Style TargetType="TextBlock">
@@ -33,6 +41,7 @@
                   <DataTrigger Binding="{Binding Value}" Value="">
                     <Setter Property="Visibility" Value="Visible" />
                   </DataTrigger>
+                  <DataTrigger Binding="{Binding IsDate}" Value="True"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                 </Style.Triggers>
               </Style>
             </TextBlock.Style>

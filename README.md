@@ -6,13 +6,13 @@ Es una vista previa funcional; **no tiene todavía todas las funciones del mocku
 
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.2.0-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.2.0-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.2.1-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.2.1-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 
-## Gastos por obra (0.2.0)
+## Gastos por obra (0.2.1)
 
-Dentro del presupuesto, abre **Gastos de la obra**. Permite crear y editar registros por fecha, categoría, descripción, importe sin IVA y tasa de IVA. Incluye Servicios, Gastos de oficina, Gastos de oficina de campo y Depreciación, mantenimiento y rentas, inspirados en los encabezados del Excel revisado; no incorpora datos ni nombres del cliente. Filtro por categoría, subtotales sin IVA y totales filtrados con IVA. Funciona sin conceptos ni programa aprobado. Los gastos no modifican el presupuesto ni generan avance.
+Dentro del presupuesto, abre **Gastos de la obra**. Permite crear y editar registros por fecha elegida en calendario, categoría, descripción, importe sin IVA y tasa de IVA opcional. El IVA vacío se guarda como 0 %, sin impuesto adicional. Incluye Servicios, Gastos de oficina, Gastos de oficina de campo y Depreciación, mantenimiento y rentas, inspirados en los encabezados del Excel revisado; no incorpora datos ni nombres del cliente. Filtro por categoría, subtotales sin IVA y totales filtrados con IVA. Funciona sin conceptos ni programa aprobado. Los gastos no modifican el presupuesto ni generan avance.
 
 Al abrir una base v1, se crea primero una copia `trazal.db.v1-<id>.trazal` junto a la base y luego se añade la tabla de gastos en una transacción. Usa la versión nueva para seguir trabajando: las anteriores no admiten el esquema v2. Los respaldos completos incluyen los gastos.
 
@@ -38,7 +38,7 @@ Herramientas: Windows moderno, Visual Studio 2022 o Build Tools con MSBuild y co
 
 La primera ejecución descarga **dos paquetes oficiales de NuGet en `build/packages`**, fijados por versión y SHA-256; las posteriores pueden usar la caché sin internet. No instala herramientas globales ni usa un .NET SDK moderno. Referencias de compilación 4.8 a través de NuGet; runtime del cliente por separado. Abre `Trazal.sln` después de preparar las dependencias y selecciona Trazal.Desktop como proyecto de inicio.
 
-28 pruebas ejecutables verifican números, reglas, persistencia, respaldo/reapertura, separación de precios, validación y cambios en formularios. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
+29 pruebas ejecutables verifican números, reglas, persistencia, respaldo/reapertura, separación de precios, validación y cambios en formularios. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
 
 ## Estructura
 

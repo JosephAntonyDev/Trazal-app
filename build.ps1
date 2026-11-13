@@ -27,11 +27,11 @@ if ($Test) {
     if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas.' }
 }
 if ($Package) {
-    $output = Join-Path $root 'artifacts\Trazal-0.2.0-preview'
+    $output = Join-Path $root 'artifacts\Trazal-0.2.1-preview'
     New-Item -ItemType Directory -Force $output | Out-Null
     Copy-Item (Join-Path $root "src\Trazal.Desktop\bin\$Configuration\*") $output -Recurse -Force
     Copy-Item (Join-Path $root 'LEEME.txt') $output -Force
     Copy-Item (Join-Path $root 'THIRD-PARTY-NOTICES.md') $output -Force
-    Compress-Archive (Join-Path $output '*') (Join-Path $root 'artifacts\Trazal-0.2.0-preview.zip') -Force
+    Compress-Archive (Join-Path $output '*') (Join-Path $root 'artifacts\Trazal-0.2.1-preview.zip') -Force
     Write-Host "Paquete portable: $output"
 }

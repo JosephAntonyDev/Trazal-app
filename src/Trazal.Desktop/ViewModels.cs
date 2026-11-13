@@ -38,18 +38,26 @@ namespace Trazal.Desktop
         public int MaxLength { get; set; } = 180;
         public string[] Choices { get; set; }
         public bool IsChoice => Choices != null;
+        public bool IsDate => Key == "date";
+        public bool EmptyIsZero { get; set; }
+        public DateTime? DateValue
+        {
+            get { DateTime date; return DateTime.TryParseExact(Value,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out date) ? date : (DateTime?)null; }
+            set => Value = value?.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture) ?? "";
+        }
         public string ComparableValue
         {
             get
             {
                 decimal numeric;
+                if (EmptyIsZero && string.IsNullOrWhiteSpace(Value)) return "0";
                 if ((Key == "vat" || Key == "quantity" || Key == "price" || Key == "amount") && decimal.TryParse(Value.Trim(), NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.GetCultureInfo("es-MX"), out numeric))
                     return numeric.ToString("G29", CultureInfo.InvariantCulture);
                 return Value.Trim();
             }
         }
         private string value = "";
-        public string Value { get => value; set => Set(ref this.value, value ?? ""); }
+        public string Value { get => value; set { if (Set(ref this.value, value ?? "")) Notify(nameof(DateValue)); } }
     }
     public sealed class Editor : Observable
     {
@@ -70,8 +78,8 @@ namespace Trazal.Desktop
             Cancel = new ActionCommand(_ => cancel());
             foreach (var f in Fields) f.PropertyChanged += (_, __) => { Error = ""; CommandManager.InvalidateRequerySuggested(); };
         }
-        public void Add(string key, string label, string value = "", string help = "", int max = 180, string[] choices = null, string placeholder = "")
-            => Fields.Add(new Field { Key = key, Label = label, Value = value, Help = help, MaxLength = max, Choices = choices, Placeholder = placeholder });
+        public void Add(string key, string label, string value = "", string help = "", int max = 180, string[] choices = null, string placeholder = "", bool emptyIsZero = false)
+            => Fields.Add(new Field { Key = key, Label = label, Value = value, Help = help, MaxLength = max, Choices = choices, Placeholder = placeholder, EmptyIsZero = emptyIsZero });
     }
     public sealed class WorkCard
     {
@@ -218,12 +226,12 @@ namespace Trazal.Desktop
         public void EditExpense(Work work, Expense existing)
         {
             var e=new Editor { Title=existing==null?"Registrar gasto":"Editar gasto", Help="Gastos independientes del presupuesto. Captura el importe sin IVA y su tasa por separado; 0 si no corresponde. Estos registros no modifican los conceptos ni el avance." };
-            e.Add("date","Fecha (aaaa-mm-dd) *",(existing?.Date??DateTime.Today).ToString("yyyy-MM-dd"),placeholder:"Ej. 2026-11-13",max:10);
+            e.Add("date","Fecha *",(existing?.Date??DateTime.Today).ToString("yyyy-MM-dd"),placeholder:"Ej. 2026-11-13",max:10);
             e.Add("category","Categoría *",existing?.Category??"",choices:Expense.Categories,placeholder:"Selecciona una categoría");
             e.Add("description","Descripción del gasto *",existing?.Description??"",max:500,placeholder:"Ej. Pago de servicio topográfico o compra de papelería");
             e.Add("amount","Importe sin IVA (MXN) *",existing?.Amount.ToString("0.00")??"",max:18,placeholder:"Ej. 1500.00");
-            e.Add("vat","IVA (%) *",(existing?.Vat??0).ToString("0.##"),"Indica 0 si no corresponde IVA.",8,placeholder:"Ej. 16");
-            Func<Expense> read=()=> { DateTime date; if(!DateTime.TryParseExact(e.Value("date"),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out date)) throw new ArgumentException("Escribe una fecha válida: aaaa-mm-dd."); return new Expense {Id=existing?.Id??Guid.NewGuid().ToString("N"),WorkId=work.Id,Date=date,Category=e.Value("category"),Description=e.Value("description"),Amount=Parse(e.Value("amount"),"el importe"),Vat=Parse(e.Value("vat"),"el IVA")}; };
+            e.Add("vat","IVA (%) · opcional",existing?.Vat.ToString("0.##")??"","Vacío se toma como 0 %; sin IVA adicional.",8,placeholder:"Ej. 16",emptyIsZero:true);
+            Func<Expense> read=()=> { DateTime date; if(!DateTime.TryParseExact(e.Value("date"),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out date)) throw new ArgumentException("Escribe una fecha válida: aaaa-mm-dd."); return new Expense {Id=existing?.Id??Guid.NewGuid().ToString("N"),WorkId=work.Id,Date=date,Category=e.Value("category"),Description=e.Value("description"),Amount=Parse(e.Value("amount"),"el importe"),Vat=e.Value("vat")==""?0:Parse(e.Value("vat"),"el IVA")}; };
             e.Configure(()=>read().Validate(),()=>{store.SaveExpense(read());Dialog=null;OpenExpenses(work);Status="Gasto guardado en esta obra.";},()=>Dialog=null,existing!=null);
             Dialog=e;
         }

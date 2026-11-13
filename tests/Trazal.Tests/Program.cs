@@ -60,6 +60,16 @@ namespace Trazal.Tests
                     var migrated=new LocalStore(legacy);Equal(1,migrated.GetWorks().Count);Equal(0,migrated.GetExpenses(w.Id).Count);Equal(1,Directory.GetFiles(folder,"legacy.db.v1-*.trazal").Length);
                     migrated.SaveExpense(expense);Equal(1,new LocalStore(legacy).GetExpenses(w.Id).Count);
                 });
+                Check("Gasto con calendario e IVA vacío guarda cero y exige fecha",()=>{
+                    shell.EditExpense(w2,null);var form=shell.Dialog;
+                    form.Fields.Single(f=>f.Key=="category").Value="Servicios";
+                    form.Fields.Single(f=>f.Key=="description").Value="Servicio de prueba";
+                    form.Fields.Single(f=>f.Key=="amount").Value="100.00";
+                    var date=form.Fields.Single(f=>f.Key=="date");date.DateValue=null;Equal(false,form.Save.CanExecute(null));
+                    date.DateValue=new DateTime(2026,11,13);Equal(true,form.Save.CanExecute(null));form.Save.Execute(null);
+                    var savedExpense=db.GetExpenses(w2.Id).Single();Equal(0m,savedExpense.Vat);Equal(100m,savedExpense.Total);Equal(new DateTime(2026,11,13),savedExpense.Date);
+                    shell.EditExpense(w2,savedExpense);shell.Dialog.Fields.Single(f=>f.Key=="vat").Value="";Equal(false,shell.Dialog.Save.CanExecute(null));shell.Dialog.Cancel.Execute(null);
+                });
                 Console.WriteLine(passed + " pruebas aprobadas."); return 0;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
