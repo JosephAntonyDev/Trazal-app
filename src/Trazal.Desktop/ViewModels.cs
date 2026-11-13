@@ -34,6 +34,7 @@ namespace Trazal.Desktop
         public string Key { get; set; }
         public string Label { get; set; }
         public string Help { get; set; }
+        public string Placeholder { get; set; } = "";
         public int MaxLength { get; set; } = 180;
         public string[] Choices { get; set; }
         public bool IsChoice => Choices != null;
@@ -69,8 +70,8 @@ namespace Trazal.Desktop
             Cancel = new ActionCommand(_ => cancel());
             foreach (var f in Fields) f.PropertyChanged += (_, __) => { Error = ""; CommandManager.InvalidateRequerySuggested(); };
         }
-        public void Add(string key, string label, string value = "", string help = "", int max = 180, string[] choices = null)
-            => Fields.Add(new Field { Key = key, Label = label, Value = value, Help = help, MaxLength = max, Choices = choices });
+        public void Add(string key, string label, string value = "", string help = "", int max = 180, string[] choices = null, string placeholder = "")
+            => Fields.Add(new Field { Key = key, Label = label, Value = value, Help = help, MaxLength = max, Choices = choices, Placeholder = placeholder });
     }
     public sealed class WorkCard
     {
@@ -144,7 +145,18 @@ namespace Trazal.Desktop
         private Editor dialog;
         private string theme, status = "", location = "Mis obras";
         private bool busy;
-        public object Page { get => page; private set => Set(ref page, value); }
+        public object Page
+        {
+            get => page;
+            private set
+            {
+                if (!Set(ref page, value)) return;
+                Notify(nameof(IsWorksSection));
+                Notify(nameof(IsProfileSection));
+            }
+        }
+        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel;
+        public bool IsProfileSection => Page is ProfileViewModel;
         public Editor Dialog { get => dialog; private set { Set(ref dialog, value); Notify(nameof(DialogOpen)); } }
         public bool DialogOpen => Dialog != null;
         public string Welcome => "Bienvenido, " + profile.FirstName;
@@ -180,10 +192,10 @@ namespace Trazal.Desktop
         public void EditWork(Work existing)
         {
             var e = new Editor { Title = existing == null ? "Crear una obra" : "Editar obra", Help = "Solo el título y el tipo son obligatorios. El IVA puede definirse después. Las fechas se establecerán en el programa de obra." };
-            e.Add("title", "Título de la obra *", existing?.Title ?? "", max: 180);
-            e.Add("type", "Tipo de obra *", existing?.Type ?? "", choices: Work.Types);
-            e.Add("scope", "Dimensiones / alcance (opcional)", existing?.Scope ?? "", "Ej. 3 km o 250 m²", 240);
-            e.Add("vat", "IVA de la obra (%) · opcional", existing?.Vat?.ToString("0.####") ?? "", "Vacío: por definir. 0: sin IVA. Puedes editarlo después.", 8);
+            e.Add("title", "Título de la obra *", existing?.Title ?? "", max: 180, placeholder: "Ej. Banqueta en calle Reforma");
+            e.Add("type", "Tipo de obra *", existing?.Type ?? "", choices: Work.Types, placeholder: "Selecciona un tipo de obra");
+            e.Add("scope", "Dimensiones / alcance (opcional)", existing?.Scope ?? "", max: 240, placeholder: "Ej. 3 km o 250 m²");
+            e.Add("vat", "IVA de la obra (%) · opcional", existing?.Vat?.ToString("0.####") ?? "", "Vacío: por definir. 0: sin IVA. Puedes editarlo después.", 8, placeholder: "Ej. 16");
             Func<Work> read = () => new Work { Id = existing?.Id ?? Guid.NewGuid().ToString("N"), Title = e.Value("title"), Type = e.Value("type"), Scope = e.Value("scope"), Vat = e.Value("vat") == "" ? (decimal?)null : Parse(e.Value("vat"), "el IVA"), CreatedAt = existing?.CreatedAt ?? DateTime.UtcNow };
             e.Configure(() => read().Validate(), () => { var w = read(); store.SaveWork(w); Dialog = null; OpenWork(w); Status = existing == null ? "Obra creada y guardada en este equipo." : "Datos de la obra guardados."; }, () => Dialog = null, existing != null);
             Dialog = e;
@@ -191,11 +203,11 @@ namespace Trazal.Desktop
         public void EditConcept(Work work, Concept existing)
         {
             var e = new Editor { Title = existing == null ? "Agregar concepto" : "Editar concepto", Help = "El precio unitario pertenece a esta obra y se captura sin IVA. En esta primera versión se ingresa el precio final del concepto; el desglose de indirectos y utilidad se incorporará después." };
-            e.Add("code", "Clave *", existing?.Code ?? "", max: 40);
-            e.Add("description", "Descripción *", existing?.Description ?? "", max: 500);
-            e.Add("unit", "Unidad *", existing?.Unit ?? "", "Ej. m², m³, kg, pieza o lote", 30);
-            e.Add("quantity", "Cantidad *", existing?.Quantity.ToString("0.####") ?? "", "Hasta cuatro decimales. Usa punto decimal.", 20);
-            e.Add("price", "Precio unitario sin IVA (MXN) *", existing?.UnitPrice.ToString("0.####") ?? "", "El precio puede ser 0; debe indicarse explícitamente.", 20);
+            e.Add("code", "Clave *", existing?.Code ?? "", max: 40, placeholder: "Ej. CON-001");
+            e.Add("description", "Descripción *", existing?.Description ?? "", max: 500, placeholder: "Ej. Concreto para banqueta");
+            e.Add("unit", "Unidad *", existing?.Unit ?? "", max: 30, placeholder: "Ej. m², m³, kg, pieza o lote");
+            e.Add("quantity", "Cantidad *", existing?.Quantity.ToString("0.####") ?? "", "Hasta cuatro decimales. Usa punto decimal.", 20, placeholder: "Ej. 100.50");
+            e.Add("price", "Precio unitario sin IVA (MXN) *", existing?.UnitPrice.ToString("0.####") ?? "", "El precio puede ser 0; debe indicarse explícitamente.", 20, placeholder: "Ej. 1250.00");
             Func<Concept> read = () => new Concept { Id = existing?.Id ?? Guid.NewGuid().ToString("N"), WorkId = work.Id, Code = e.Value("code"), Description = e.Value("description"), Unit = e.Value("unit"), Quantity = Parse(e.Value("quantity"), "la cantidad"), UnitPrice = Parse(e.Value("price"), "el precio") };
             e.Configure(() => read().Validate(), () => { store.SaveConcept(read()); Dialog = null; OpenWork(work); Status = "Concepto guardado. Presupuesto actualizado."; }, () => Dialog = null, existing != null);
             Dialog = e;
