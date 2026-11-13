@@ -1,11 +1,11 @@
-TRAZAL — VISTA PREVIA 0.1
+TRAZAL — VISTA PREVIA 0.2.0
 
 Extrae la carpeta completa y abre Trazal.exe. Conserva las DLL y las carpetas x86/x64 junto al ejecutable.
 Requiere .NET Framework 4.8. Destino previsto: Windows 7 SP1 o posterior; todavía pendiente de validación en Windows 7 real.
 No es un instalador ni una versión para producción. Usa datos de prueba hasta validar cálculos y recuperación con el equipo.
 
-Incluye: obras, búsqueda por nombre/tipo/alcance, presupuesto manual, edición de IVA, perfil local, temas y respaldo completo.
-Próximos hitos: importación Excel, programa fijo, avance, gastos, gráficas, PDF, restauración guiada e instalador.
+Incluye: obras, búsqueda por nombre/tipo/alcance, presupuesto manual, edición de IVA, perfil local, gastos por categoría, temas y respaldo completo.
+Próximos hitos: importación Excel, programa fijo, avance, gráficas, PDF, restauración guiada e instalador.
 
 Los datos se guardan en %LOCALAPPDATA%\Trazal\Preview\trazal.db.
 El respaldo .trazal es una copia SQLite sin cifrar; incluye obras y perfil. No es compatible con el JSON del mockup.

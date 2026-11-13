@@ -19,14 +19,17 @@ namespace Trazal.Data
             using (var db = Open())
             {
                 var version = Convert.ToInt32(Scalar(db, "PRAGMA user_version"));
-                if (version > 1) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
+                if (version > 2) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
+                if (version == 1) Backup(FilePath + ".v1-" + Guid.NewGuid().ToString("N") + ".trazal");
                 using (var tx = db.BeginTransaction())
                 {
                     Execute(db, @"CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,title TEXT NOT NULL,type TEXT NOT NULL,scope TEXT NOT NULL,vat TEXT,created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS concepts(id TEXT PRIMARY KEY,work_id TEXT NOT NULL REFERENCES works(id),code TEXT NOT NULL COLLATE NOCASE,description TEXT NOT NULL,unit TEXT NOT NULL,quantity TEXT NOT NULL,price TEXT NOT NULL,UNIQUE(work_id,code));
 CREATE INDEX IF NOT EXISTS ix_concepts_work ON concepts(work_id);
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
-PRAGMA user_version=1;", tx);
+CREATE TABLE IF NOT EXISTS expenses(id TEXT PRIMARY KEY,work_id TEXT NOT NULL REFERENCES works(id),date TEXT NOT NULL,category TEXT NOT NULL,description TEXT NOT NULL,amount TEXT NOT NULL,vat TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS ix_expenses_work_date ON expenses(work_id,date);
+PRAGMA user_version=2;", tx);
                     tx.Commit();
                 }
             }
@@ -103,6 +106,26 @@ PRAGMA user_version=1;", tx);
                 { throw new ArgumentException("La clave ya existe o la obra no está disponible. Revisa el concepto.", e); }
             }
         }
+        public List<Expense> GetExpenses(string workId)
+        {
+            var list = new List<Expense>();
+            using (var db = Open()) using (var cmd = Command(db, "SELECT id,date,category,description,amount,vat FROM expenses WHERE work_id=@p0 ORDER BY date DESC,rowid DESC", null, workId))
+            using (var r = cmd.ExecuteReader()) while (r.Read())
+                list.Add(new Expense { Id=r.GetString(0), WorkId=workId, Date=DateTime.ParseExact(r.GetString(1), "yyyy-MM-dd", Inv), Category=r.GetString(2), Description=r.GetString(3), Amount=decimal.Parse(r.GetString(4),Inv), Vat=decimal.Parse(r.GetString(5),Inv) });
+            return list;
+        }
+        public void SaveExpense(Expense e)
+        {
+            e.Validate();
+            using (var db=Open()) using (var tx=db.BeginTransaction())
+            {
+                var owner=Scalar(db,"SELECT work_id FROM expenses WHERE id=@p0",tx,e.Id);
+                if(owner!=null && Convert.ToString(owner)!=e.WorkId) throw new InvalidOperationException("El gasto pertenece a otra obra.");
+                var rows=Execute(db,"UPDATE expenses SET date=@p2,category=@p3,description=@p4,amount=@p5,vat=@p6 WHERE id=@p0 AND work_id=@p1",tx,e.Id,e.WorkId,e.Date.ToString("yyyy-MM-dd",Inv),e.Category,e.Description.Trim(),Number(e.Amount),Number(e.Vat));
+                if(rows==0) Execute(db,"INSERT INTO expenses(id,work_id,date,category,description,amount,vat) VALUES(@p0,@p1,@p2,@p3,@p4,@p5,@p6)",tx,e.Id,e.WorkId,e.Date.ToString("yyyy-MM-dd",Inv),e.Category,e.Description.Trim(),Number(e.Amount),Number(e.Vat));
+                tx.Commit();
+            }
+        }
         public string GetSetting(string key, string fallback = "")
         {
             using (var db = Open()) return Convert.ToString(Scalar(db, "SELECT value FROM settings WHERE key=@p0", null, key)) is string value && value.Length > 0 ? value : fallback;
@@ -125,7 +148,7 @@ PRAGMA user_version=1;", tx);
         public void Backup(string destination)
         {
             if (string.Equals(Path.GetFullPath(destination), FilePath, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException("Elige otra ubicación para el respaldo.");
-            var temp = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            var temp = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(destination)), Guid.NewGuid().ToString("N") + ".tmp");
             try
             {
                 using (var source = Open())

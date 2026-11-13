@@ -43,7 +43,7 @@ namespace Trazal.Desktop
             get
             {
                 decimal numeric;
-                if ((Key == "vat" || Key == "quantity" || Key == "price") && decimal.TryParse(Value.Trim(), NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.GetCultureInfo("es-MX"), out numeric))
+                if ((Key == "vat" || Key == "quantity" || Key == "price" || Key == "amount") && decimal.TryParse(Value.Trim(), NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.GetCultureInfo("es-MX"), out numeric))
                     return numeric.ToString("G29", CultureInfo.InvariantCulture);
                 return Value.Trim();
             }
@@ -121,12 +121,14 @@ namespace Trazal.Desktop
         public string Total => Totals.Total.HasValue ? ShellViewModel.Money(Totals.Total.Value) : "IVA pendiente";
         public string TaxLabel => Work.Vat.HasValue ? "IVA · " + Work.Vat.Value.ToString("0.##") + " %" : "IVA";
         public bool Empty => Concepts.Count == 0;
+        public ICommand Expenses { get; }
         public ICommand Add { get; }
         public ICommand Edit { get; }
         public ICommand EditConcept { get; }
         public WorkViewModel(ShellViewModel shell, Work work, List<Concept> concepts)
         {
             Work = work; Concepts = concepts; Totals = Budget.Calculate(concepts, work.Vat);
+            Expenses = new ActionCommand(_ => shell.OpenExpenses(work));
             Add = new ActionCommand(_ => shell.EditConcept(work, null));
             Edit = new ActionCommand(_ => shell.EditWork(work));
             EditConcept = new ActionCommand(c => shell.EditConcept(work, (Concept)c));
@@ -155,7 +157,7 @@ namespace Trazal.Desktop
                 Notify(nameof(IsProfileSection));
             }
         }
-        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel;
+        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel;
         public bool IsProfileSection => Page is ProfileViewModel;
         public Editor Dialog { get => dialog; private set { Set(ref dialog, value); Notify(nameof(DialogOpen)); } }
         public bool DialogOpen => Dialog != null;
@@ -204,13 +206,26 @@ namespace Trazal.Desktop
         {
             var e = new Editor { Title = existing == null ? "Agregar concepto" : "Editar concepto", Help = "El precio unitario pertenece a esta obra y se captura sin IVA. En esta primera versión se ingresa el precio final del concepto; el desglose de indirectos y utilidad se incorporará después." };
             e.Add("code", "Clave *", existing?.Code ?? "", max: 40, placeholder: "Ej. CON-001");
-            e.Add("description", "Descripción *", existing?.Description ?? "", max: 500, placeholder: "Ej. Concreto para banqueta");
+            e.Add("description", "Trabajo a realizar / descripción *", existing?.Description ?? "", max: 500, placeholder: "Ej. Construcción de banqueta de concreto");
             e.Add("unit", "Unidad *", existing?.Unit ?? "", max: 30, placeholder: "Ej. m², m³, kg, pieza o lote");
             e.Add("quantity", "Cantidad *", existing?.Quantity.ToString("0.####") ?? "", "Hasta cuatro decimales. Usa punto decimal.", 20, placeholder: "Ej. 100.50");
             e.Add("price", "Precio unitario sin IVA (MXN) *", existing?.UnitPrice.ToString("0.####") ?? "", "El precio puede ser 0; debe indicarse explícitamente.", 20, placeholder: "Ej. 1250.00");
             Func<Concept> read = () => new Concept { Id = existing?.Id ?? Guid.NewGuid().ToString("N"), WorkId = work.Id, Code = e.Value("code"), Description = e.Value("description"), Unit = e.Value("unit"), Quantity = Parse(e.Value("quantity"), "la cantidad"), UnitPrice = Parse(e.Value("price"), "el precio") };
             e.Configure(() => read().Validate(), () => { store.SaveConcept(read()); Dialog = null; OpenWork(work); Status = "Concepto guardado. Presupuesto actualizado."; }, () => Dialog = null, existing != null);
             Dialog = e;
+        }
+        public void OpenExpenses(Work work) => Safe(() => { Page = new ExpensesViewModel(this,work,store.GetExpenses(work.Id)); Location="Mi obra / Gastos"; });
+        public void EditExpense(Work work, Expense existing)
+        {
+            var e=new Editor { Title=existing==null?"Registrar gasto":"Editar gasto", Help="Gastos independientes del presupuesto. Captura el importe sin IVA y su tasa por separado; 0 si no corresponde. Estos registros no modifican los conceptos ni el avance." };
+            e.Add("date","Fecha (aaaa-mm-dd) *",(existing?.Date??DateTime.Today).ToString("yyyy-MM-dd"),placeholder:"Ej. 2026-11-13",max:10);
+            e.Add("category","Categoría *",existing?.Category??"",choices:Expense.Categories,placeholder:"Selecciona una categoría");
+            e.Add("description","Descripción del gasto *",existing?.Description??"",max:500,placeholder:"Ej. Pago de servicio topográfico o compra de papelería");
+            e.Add("amount","Importe sin IVA (MXN) *",existing?.Amount.ToString("0.00")??"",max:18,placeholder:"Ej. 1500.00");
+            e.Add("vat","IVA (%) *",(existing?.Vat??0).ToString("0.##"),"Indica 0 si no corresponde IVA.",8,placeholder:"Ej. 16");
+            Func<Expense> read=()=> { DateTime date; if(!DateTime.TryParseExact(e.Value("date"),"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out date)) throw new ArgumentException("Escribe una fecha válida: aaaa-mm-dd."); return new Expense {Id=existing?.Id??Guid.NewGuid().ToString("N"),WorkId=work.Id,Date=date,Category=e.Value("category"),Description=e.Value("description"),Amount=Parse(e.Value("amount"),"el importe"),Vat=Parse(e.Value("vat"),"el IVA")}; };
+            e.Configure(()=>read().Validate(),()=>{store.SaveExpense(read());Dialog=null;OpenExpenses(work);Status="Gasto guardado en esta obra.";},()=>Dialog=null,existing!=null);
+            Dialog=e;
         }
         private void OpenProfile()
         {

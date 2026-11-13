@@ -6,9 +6,15 @@ Es una vista previa funcional; **no tiene todavía todas las funciones del mocku
 
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.1.1-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.1.1-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.2.0-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.2.0-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
+
+## Gastos por obra (0.2.0)
+
+Dentro del presupuesto, abre **Gastos de la obra**. Permite crear y editar registros por fecha, categoría, descripción, importe sin IVA y tasa de IVA. Incluye Servicios, Gastos de oficina, Gastos de oficina de campo y Depreciación, mantenimiento y rentas, inspirados en los encabezados del Excel revisado; no incorpora datos ni nombres del cliente. Filtro por categoría, subtotales sin IVA y totales filtrados con IVA. Funciona sin conceptos ni programa aprobado. Los gastos no modifican el presupuesto ni generan avance.
+
+Al abrir una base v1, se crea primero una copia `trazal.db.v1-<id>.trazal` junto a la base y luego se añade la tabla de gastos en una transacción. Usa la versión nueva para seguir trabajando: las anteriores no admiten el esquema v2. Los respaldos completos incluyen los gastos.
 
 ## Funciona ahora
 
@@ -20,7 +26,7 @@ Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto
 - Tema claro/oscuro/sistema persistido, ayudas «?», navegación con teclado y diálogo que bloquea la vista de fondo.
 - Guardado local transaccional y respaldo SQLite consistente, verificado con `integrity_check`, fuera del hilo de interfaz.
 
-No están implementados aún: importación XLS/XLSX, programa y línea base, avances, gastos, curva S, PDF, restauración guiada, licencias, Firebase, actualización ni instalador. Se muestran como «En desarrollo», sin botones falsos. La vista previa no carga automáticamente los datos del navegador.
+No están implementados aún: importación XLS/XLSX, programa y línea base, avances, curva S, PDF, restauración guiada, licencias, Firebase, actualización ni instalador. Se muestran como «En desarrollo», sin botones falsos. La vista previa no carga automáticamente los datos del navegador.
 
 ## Desarrollo
 
@@ -32,7 +38,7 @@ Herramientas: Windows moderno, Visual Studio 2022 o Build Tools con MSBuild y co
 
 La primera ejecución descarga **dos paquetes oficiales de NuGet en `build/packages`**, fijados por versión y SHA-256; las posteriores pueden usar la caché sin internet. No instala herramientas globales ni usa un .NET SDK moderno. Referencias de compilación 4.8 a través de NuGet; runtime del cliente por separado. Abre `Trazal.sln` después de preparar las dependencias y selecciona Trazal.Desktop como proyecto de inicio.
 
-22 pruebas ejecutables verifican números, reglas, persistencia, respaldo/reapertura, separación de precios, validación y cambios en formularios. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
+28 pruebas ejecutables verifican números, reglas, persistencia, respaldo/reapertura, separación de precios, validación y cambios en formularios. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
 
 ## Estructura
 
@@ -43,7 +49,7 @@ La primera ejecución descarga **dos paquetes oficiales de NuGet en `build/packa
 | Trazal.Desktop | XAML, estilos semánticos claro/oscuro, MVVM y comandos. |
 | Trazal.Tests | Casos de aceptación ejecutables, sin dependencias de un servicio. |
 
-Los precios/cantidades se persisten como texto decimal invariante para evitar pérdida por coma flotante. Se parametriza todo SQL. El esquema tiene `user_version=1` y se rechazan versiones futuras. La base activa vive en `%LOCALAPPDATA%\Trazal\Preview\trazal.db`; no se escribe junto al EXE ni se requiere administrador. `TRAZAL_DATA_DIR` permite aislar datos de QA.
+Los precios/cantidades se persisten como texto decimal invariante para evitar pérdida por coma flotante. Se parametriza todo SQL. El esquema tiene `user_version=2` y se rechazan versiones futuras. La base activa vive en `%LOCALAPPDATA%\Trazal\Preview\trazal.db`; no se escribe junto al EXE ni se requiere administrador. `TRAZAL_DATA_DIR` permite aislar datos de QA.
 
 **Decisión provisional de esta base:** una base SQLite del espacio local, con obras separadas por ID y claves foráneas. El plan anterior proponía una base por obra; antes de estabilizar el formato evaluaremos exportación individual/migración. El respaldo `.trazal` actual copia el espacio completo, incluido el perfil, no tiene cifrado y no es el JSON del mockup. No editar directamente la base activa con aplicaciones de sincronización.
 
@@ -55,6 +61,6 @@ Las tablas virtualizan filas/columnas. Los listados iniciales aún consultan tod
 2. Probar dependencias XLS/XLSX y PDF con archivos sintéticos; generar instalador y probar actualización sin perder datos.
 3. Añadir recuperación guiada como copia con validación; documentar esquema y migraciones antes del piloto.
 4. Contrastar cálculos con Excel autorizado y acordar redondeo, utilidad/indirectos y significado de gastos.
-5. Implementar programa fijo, avances hasta 100 %, gastos y curva S, en ese orden.
+5. Implementar programa fijo, avances hasta 100 % y curva S, enlazando los gastos registrados.
 
 Los archivos del cliente quedan fuera del repositorio. Este código se mantiene en un repositorio local independiente; no se publica automáticamente en el repo público del mockup. Dependencias y términos: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
