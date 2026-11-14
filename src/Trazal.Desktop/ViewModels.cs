@@ -258,8 +258,11 @@ namespace Trazal.Desktop
         private void OpenProfile()
         {
             var e = new Editor { Title = "Datos personales", SaveLabel = "Guardar cambios" };
-            e.Add("first", "Nombre *", profile.FirstName, max: 80); e.Add("last", "Apellido", profile.LastName, max: 100);
-            e.Add("company", "Empresa", profile.Company, max: 140); e.Add("email", "Correo electrónico", profile.Email, max: 180); e.Add("phone", "Teléfono", profile.Phone, max: 30);
+            e.Add("first", "Nombre *", profile.FirstName, max: 80, placeholder: "Ej. Joseph");
+            e.Add("last", "Apellido", profile.LastName, max: 100, placeholder: "Ej. García López");
+            e.Add("company", "Empresa", profile.Company, max: 140, placeholder: "Ej. Constructora del Sur");
+            e.Add("email", "Correo electrónico", profile.Email, max: 180, placeholder: "nombre@empresa.com");
+            e.Add("phone", "Teléfono", profile.Phone, max: 30, placeholder: "Ej. 55 1234 5678");
             Func<Profile> read = () => new Profile { FirstName = e.Value("first"), LastName = e.Value("last"), Company = e.Value("company"), Email = e.Value("email"), Phone = e.Value("phone") };
             e.Configure(() => read().Validate(), () => { var p = read(); store.SaveProfile(p); profile = p; Notify(nameof(Welcome)); Notify(nameof(Initials)); OpenProfile(); Status = "Perfil guardado en este equipo."; }, OpenHome, true);
             Page = new ProfileViewModel { Profile = profile, Editor = e }; Location = "Mi perfil";
