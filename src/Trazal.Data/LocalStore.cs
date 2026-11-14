@@ -8,7 +8,7 @@ using Trazal.Core;
 
 namespace Trazal.Data
 {
-    public sealed class LocalStore
+    public sealed partial class LocalStore
     {
         public string FilePath { get; }
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
@@ -19,8 +19,8 @@ namespace Trazal.Data
             using (var db = Open())
             {
                 var version = Convert.ToInt32(Scalar(db, "PRAGMA user_version"));
-                if (version > 2) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
-                if (version == 1) Backup(FilePath + ".v1-" + Guid.NewGuid().ToString("N") + ".trazal");
+                if (version > 3) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
+                if (version > 0 && version < 3) Backup(FilePath + ".v" + version + "-" + Guid.NewGuid().ToString("N") + ".trazal");
                 using (var tx = db.BeginTransaction())
                 {
                     Execute(db, @"CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,title TEXT NOT NULL,type TEXT NOT NULL,scope TEXT NOT NULL,vat TEXT,created TEXT NOT NULL);
@@ -29,7 +29,10 @@ CREATE INDEX IF NOT EXISTS ix_concepts_work ON concepts(work_id);
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS expenses(id TEXT PRIMARY KEY,work_id TEXT NOT NULL REFERENCES works(id),date TEXT NOT NULL,category TEXT NOT NULL,description TEXT NOT NULL,amount TEXT NOT NULL,vat TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_expenses_work_date ON expenses(work_id,date);
-PRAGMA user_version=2;", tx);
+CREATE TABLE IF NOT EXISTS planned_days(concept_id TEXT NOT NULL REFERENCES concepts(id),date TEXT NOT NULL,quantity TEXT NOT NULL,PRIMARY KEY(concept_id,date));
+CREATE TABLE IF NOT EXISTS baselines(work_id TEXT PRIMARY KEY REFERENCES works(id),approved TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS progress(id TEXT PRIMARY KEY,concept_id TEXT NOT NULL REFERENCES concepts(id),date TEXT NOT NULL,quantity TEXT NOT NULL,note TEXT NOT NULL,UNIQUE(concept_id,date));
+PRAGMA user_version=3;", tx);
                     tx.Commit();
                 }
             }
@@ -94,6 +97,7 @@ PRAGMA user_version=2;", tx);
             c.Validate();
             using (var db = Open()) using (var tx = db.BeginTransaction())
             {
+                EnsureDraft(db, tx, c.WorkId);
                 var owner = Scalar(db, "SELECT work_id FROM concepts WHERE id=@p0", tx, c.Id);
                 if (owner != null && Convert.ToString(owner) != c.WorkId) throw new InvalidOperationException("No se puede mover un concepto a otra obra.");
                 try

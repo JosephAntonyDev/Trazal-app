@@ -10,7 +10,8 @@ New-Item -ItemType Directory -Force $packages | Out-Null
 # Pinned upstream NuGet packages; cached locally, never installed globally.
 $dependencies = @(
     @{Name='net48'; Id='microsoft.netframework.referenceassemblies.net48'; Version='1.0.3'; Sha='8A7E348538E7EB91351696911689F49E3D4F63F8BAB517432BBE159B8B1104A2'},
-    @{Name='sqlite'; Id='stub.system.data.sqlite.core.netframework'; Version='1.0.119'; Sha='F5F86B80729323890DA590A8C7BA7957F04E2735E583D075220D1521745E9F4C'}
+    @{Name='sqlite'; Id='stub.system.data.sqlite.core.netframework'; Version='1.0.119'; Sha='F5F86B80729323890DA590A8C7BA7957F04E2735E583D075220D1521745E9F4C'},
+    @{Name='excelreader'; Id='exceldatareader'; Version='3.7.0'; Sha='7222A0A533A495F3F596334A8A98F38F974394E1F75CC2922AF11E4E15C22834'}
 )
 foreach ($dep in $dependencies) {
     $zip = Join-Path $packages ($dep.Name + '.zip')
@@ -18,20 +19,23 @@ foreach ($dep in $dependencies) {
     if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $dep.Sha) { throw "Integridad incorrecta: $($dep.Name). No se compilará." }
     Expand-Archive $zip (Join-Path $packages $dep.Name) -Force
 }
-& $msbuild (Join-Path $root 'src\Trazal.Desktop\Trazal.Desktop.csproj') /nologo /verbosity:minimal "/p:Configuration=$Configuration"
+$appOutput = Join-Path $root "build\output\$Configuration\app"
+$testOutput = Join-Path $root "build\output\$Configuration\tests"
+& $msbuild (Join-Path $root 'src\Trazal.Desktop\Trazal.Desktop.csproj') /nologo /verbosity:minimal "/p:Configuration=$Configuration" "/p:OutDir=$appOutput\"
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de Trazal.' }
 if ($Test) {
-    & $msbuild (Join-Path $root 'tests\Trazal.Tests\Trazal.Tests.csproj') /nologo /verbosity:minimal "/p:Configuration=$Configuration"
+    & $msbuild (Join-Path $root 'tests\Trazal.Tests\Trazal.Tests.csproj') /nologo /verbosity:minimal "/p:Configuration=$Configuration" "/p:OutDir=$testOutput\"
     if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de pruebas.' }
-    & (Join-Path $root "tests\Trazal.Tests\bin\$Configuration\Trazal.Tests.exe")
+    & (Join-Path $testOutput 'Trazal.Tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas.' }
 }
 if ($Package) {
-    $output = Join-Path $root 'artifacts\Trazal-0.2.1-preview'
+    $output = Join-Path $root 'artifacts\Trazal-0.3.0-preview'
     New-Item -ItemType Directory -Force $output | Out-Null
-    Copy-Item (Join-Path $root "src\Trazal.Desktop\bin\$Configuration\*") $output -Recurse -Force
+    Copy-Item (Join-Path $appOutput '*') $output -Recurse -Force
     Copy-Item (Join-Path $root 'LEEME.txt') $output -Force
     Copy-Item (Join-Path $root 'THIRD-PARTY-NOTICES.md') $output -Force
-    Compress-Archive (Join-Path $output '*') (Join-Path $root 'artifacts\Trazal-0.2.1-preview.zip') -Force
+    Copy-Item (Join-Path $root 'ExcelDataReader-LICENSE.txt') $output -Force
+    Compress-Archive (Join-Path $output '*') (Join-Path $root 'artifacts\Trazal-0.3.0-preview.zip') -Force
     Write-Host "Paquete portable: $output"
 }

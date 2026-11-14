@@ -27,10 +27,14 @@
     <ApplicationDefinition Include="App.xaml" />
     <Page Include="MainWindow.xaml" />
     <Page Include="Styles.xaml" />
+    <Page Include="DateControls.xaml" />
     <Compile Include="App.xaml.cs" />
     <Compile Include="MainWindow.xaml.cs" />
     <Compile Include="ViewModels.cs" />
     <Compile Include="ExpensesViewModel.cs" />
+    <Compile Include="ImportViewModel.cs" />
+    <Compile Include="ProgramViewModel.cs" />
+    <Compile Include="PlanningCommands.cs" />
     <Compile Include="Theme.cs" />
     <Compile Include="ResponsivePanel.cs" />
     <Compile Include="AssemblyInfo.cs" />

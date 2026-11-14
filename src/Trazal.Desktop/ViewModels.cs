@@ -32,13 +32,14 @@ namespace Trazal.Desktop
     public sealed class Field : Observable
     {
         public string Key { get; set; }
-        public string Label { get; set; }
+        private string label;
+        public string Label { get=>label; set=>Set(ref label,value); }
         public string Help { get; set; }
         public string Placeholder { get; set; } = "";
         public int MaxLength { get; set; } = 180;
         public string[] Choices { get; set; }
         public bool IsChoice => Choices != null;
-        public bool IsDate => Key == "date";
+        public bool IsDate => Key == "date" || Key == "start" || Key == "end";
         public bool EmptyIsZero { get; set; }
         public DateTime? DateValue
         {
@@ -130,16 +131,24 @@ namespace Trazal.Desktop
         public string TaxLabel => Work.Vat.HasValue ? "IVA · " + Work.Vat.Value.ToString("0.##") + " %" : "IVA";
         public bool Empty => Concepts.Count == 0;
         public ICommand Expenses { get; }
+        public ICommand Import { get; }
+        public ICommand Program { get; }
+        public ICommand Progress { get; }
+        public bool Frozen { get; }
         public ICommand Add { get; }
         public ICommand Edit { get; }
         public ICommand EditConcept { get; }
-        public WorkViewModel(ShellViewModel shell, Work work, List<Concept> concepts)
+        public WorkViewModel(ShellViewModel shell, Work work, List<Concept> concepts, bool frozen = false)
         {
+            Frozen = frozen;
             Work = work; Concepts = concepts; Totals = Budget.Calculate(concepts, work.Vat);
             Expenses = new ActionCommand(_ => shell.OpenExpenses(work));
-            Add = new ActionCommand(_ => shell.EditConcept(work, null));
+            Import = new ActionCommand(_ => shell.OpenImport(work), _ => !Frozen);
+            Program = new ActionCommand(_ => shell.OpenProgram(work));
+            Progress = new ActionCommand(_ => shell.OpenProgram(work, true));
+            Add = new ActionCommand(_ => shell.EditConcept(work, null), _ => !Frozen);
             Edit = new ActionCommand(_ => shell.EditWork(work));
-            EditConcept = new ActionCommand(c => shell.EditConcept(work, (Concept)c));
+            EditConcept = new ActionCommand(c => shell.EditConcept(work, (Concept)c), _ => !Frozen);
         }
     }
     public sealed class ProfileViewModel
@@ -147,7 +156,7 @@ namespace Trazal.Desktop
         public Profile Profile { get; set; }
         public Editor Editor { get; set; }
     }
-    public sealed class ShellViewModel : Observable
+    public sealed partial class ShellViewModel : Observable
     {
         private readonly LocalStore store;
         private Profile profile;
@@ -165,7 +174,7 @@ namespace Trazal.Desktop
                 Notify(nameof(IsProfileSection));
             }
         }
-        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel;
+        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel;
         public bool IsProfileSection => Page is ProfileViewModel;
         public Editor Dialog { get => dialog; private set { Set(ref dialog, value); Notify(nameof(DialogOpen)); } }
         public bool DialogOpen => Dialog != null;
@@ -191,7 +200,7 @@ namespace Trazal.Desktop
         }
         private void Safe(Action action) { try { action(); } catch (Exception ex) { Status = "No se completó la operación: " + ex.Message; } }
         public void OpenHome() { Page = new HomeViewModel(this, store.GetWorks()); Location = "Mis obras"; }
-        public void OpenWork(Work w) { Safe(() => { Page = new WorkViewModel(this, w, store.GetConcepts(w.Id)); Location = "Mi obra / Presupuesto"; }); }
+        public void OpenWork(Work w) { Safe(() => { Page = new WorkViewModel(this, w, store.GetConcepts(w.Id), store.IsFrozen(w.Id)); Location = "Mi obra / Presupuesto"; }); }
         private static decimal Parse(string value, string label)
         {
             decimal result;

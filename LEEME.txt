@@ -1,11 +1,24 @@
-TRAZAL — VISTA PREVIA 0.2.1
+TRAZAL — VISTA PREVIA 0.3.0
 
 Extrae la carpeta completa y abre Trazal.exe. Conserva las DLL y las carpetas x86/x64 junto al ejecutable.
 Requiere .NET Framework 4.8. Destino previsto: Windows 7 SP1 o posterior; todavía pendiente de validación en Windows 7 real.
 No es un instalador ni una versión para producción. Usa datos de prueba hasta validar cálculos y recuperación con el equipo.
 
-Incluye: obras, búsqueda por nombre/tipo/alcance, presupuesto manual, edición de IVA, perfil local, gastos por categoría, temas y respaldo completo.
-Próximos hitos: importación Excel, programa fijo, avance, gráficas, PDF, restauración guiada e instalador.
+Incluye: obras, búsqueda, presupuesto manual o importado de XLS/XLSX, IVA, perfil local, gastos por categoría, programa diario fijo, avances acumulados hasta 100 %, temas y respaldo completo.
+Próximos hitos: gráficas, PDF, correcciones auditables de avances, restauración guiada e instalador.
+
+FLUJO DE PRUEBA
+1. Entra a una obra y elige Importar Excel. Selecciona hoja, filas y columnas. Si el precio está debajo del concepto, activa Precio en la fila siguiente.
+2. Prepara la vista previa, revisa filas, cantidades, precios y subtotal. Confirma la selección e importa. Las filas sin clave empiezan desmarcadas.
+3. En Programa de obra, selecciona cada concepto y distribuye fechas o captura cantidades por día. El reparto entre fechas incluye fines de semana; ajústalo según el programa real.
+4. Cuando todos completen la cantidad contratada, fija el programa. Esto protege presupuesto y distribución; no se puede reabrir en esta versión.
+5. En Avance real, registra cantidad o porcentaje acumulado a una fecha. No admite más de 100 %, fechas futuras ni dos cortes del mismo concepto y fecha.
+6. Consulta otras fechas de corte para comparar programa y ejecución.
+
+Recalcula y guarda el Excel antes de importar: Trazal lee valores guardados, no recalcula fórmulas. Los originales no se modifican.
+El programa existente del Excel no se importa todavía; prepara y revisa la distribución dentro de Trazal.
+Los cortes guardados no se corrigen ni eliminan en esta versión. Usa datos de prueba.
+La migración a esquema v3 crea una copia previa de bases v1/v2. Continúa con esta versión; las anteriores no pueden abrir el esquema nuevo.
 
 Los datos se guardan en %LOCALAPPDATA%\Trazal\Preview\trazal.db.
 El respaldo .trazal es una copia SQLite sin cifrar; incluye obras y perfil. No es compatible con el JSON del mockup.

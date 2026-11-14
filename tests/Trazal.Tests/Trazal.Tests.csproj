@@ -9,6 +9,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Data.SQLite"><HintPath>..\..\build\packages\sqlite\lib\net46\System.Data.SQLite.dll</HintPath></Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -26,6 +28,7 @@
       <Name>Trazal.Data</Name>
     </ProjectReference>
     <Compile Include="Program.cs" />
+    <Compile Include="WorkflowTests.cs" />
     <Content Include="..\..\build\packages\sqlite\build\net46\x64\SQLite.Interop.dll">
       <Link>x64\SQLite.Interop.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

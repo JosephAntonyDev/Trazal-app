@@ -7,7 +7,7 @@ using Trazal.Desktop;
 
 namespace Trazal.Tests
 {
-    internal static class Program
+    internal static partial class Program
     {
         private static int passed;
         private static void Check(string name, Action test) { test(); passed++; Console.WriteLine("OK  " + name); }
@@ -15,8 +15,10 @@ namespace Trazal.Tests
         private static void Reject(Action action) { try { action(); } catch (ArgumentException) { return; } throw new Exception("Se aceptó un dato inválido."); }
         private static Concept Item(string work, decimal quantity = 100m, decimal price = 100m) => new Concept { WorkId = work, Code = "CON-001", Description = "Concreto", Unit = "m²", Quantity = quantity, UnitPrice = price };
         [STAThread]
-        private static int Main()
+        private static int Main(string[] args)
         {
+            if(args.Length==2 && args[0]=="--qa-setup") { SeedQa(args[1]); return 0; }
+            if(args.Length==2 && args[0]=="--ui-preview") { PreviewQa(args[1]); return 0; }
             var folder = Path.Combine(Path.GetTempPath(), "Trazal-tests-" + Guid.NewGuid().ToString("N"));
             try
             {
@@ -70,6 +72,7 @@ namespace Trazal.Tests
                     var savedExpense=db.GetExpenses(w2.Id).Single();Equal(0m,savedExpense.Vat);Equal(100m,savedExpense.Total);Equal(new DateTime(2026,11,13),savedExpense.Date);
                     shell.EditExpense(w2,savedExpense);shell.Dialog.Fields.Single(f=>f.Key=="vat").Value="";Equal(false,shell.Dialog.Save.CanExecute(null));shell.Dialog.Cancel.Execute(null);
                 });
+                Workflows(folder);
                 Console.WriteLine(passed + " pruebas aprobadas."); return 0;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }

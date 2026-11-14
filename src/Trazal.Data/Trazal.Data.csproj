@@ -10,6 +10,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="ExcelDataReader"><HintPath>..\..\build\packages\excelreader\lib\net462\ExcelDataReader.dll</HintPath></Reference>
     <Reference Include="System.Data.SQLite">
       <HintPath>..\..\build\packages\sqlite\lib\net46\System.Data.SQLite.dll</HintPath>
     </Reference>
@@ -18,6 +20,8 @@
       <Name>Trazal.Core</Name>
     </ProjectReference>
     <Compile Include="LocalStore.cs" />
+    <Compile Include="ProgramStore.cs" />
+    <Compile Include="ExcelCatalog.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

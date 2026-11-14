@@ -60,6 +60,99 @@
         </TextBlock>
       </StackPanel>
     </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ImportViewModel}">
+      <Grid Margin="28,24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,16">
+          <Button DockPanel.Dock="Right" Content="Volver al presupuesto" Command="{Binding Back}" VerticalAlignment="Top"/>
+          <StackPanel><TextBlock Text="{Binding Title}" Foreground="{DynamicResource Muted}"/><WrapPanel><TextBlock Text="Importar catálogo" Style="{StaticResource Heading}"/><Button Style="{StaticResource Help}" Click="Help_Click" AutomationProperties.Name="Ayuda para importar" ToolTip="Elige hoja, filas y columnas; prepara la vista previa y revisa el subtotal. Se leen valores guardados en Excel, no se recalculan fórmulas. Guarda y recalcula el libro en Excel antes de importarlo. Los conceptos existentes no se reemplazan. Si el precio está en la fila siguiente, activa esa opción y selecciona su columna."/></WrapPanel></StackPanel>
+        </DockPanel>
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="18" Margin="0,0,0,14" IsEnabled="{Binding Ready}">
+          <ScrollViewer MaxHeight="270" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+              <WrapPanel Margin="0,0,0,12"><Button Content="Elegir Excel" Command="{Binding Choose}"/><TextBlock Text="{Binding FileName}" VerticalAlignment="Center" Margin="14,0" MaxWidth="420" TextTrimming="CharacterEllipsis"/></WrapPanel>
+              <WrapPanel>
+                <StackPanel Width="250" Margin="0,0,16,12"><TextBlock Text="Hoja *" Margin="0,0,0,6"/><ComboBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding Sheet}" AutomationProperties.Name="Hoja de Excel"/></StackPanel>
+                <StackPanel Width="120" Margin="0,0,16,12"><TextBlock Text="Encabezado *" Margin="0,0,0,6"/><TextBox Text="{Binding Header,UpdateSourceTrigger=PropertyChanged}" MaxLength="5" AutomationProperties.Name="Fila del encabezado"/></StackPanel>
+                <StackPanel Width="120" Margin="0,0,16,12"><TextBlock Text="Primera fila *" Margin="0,0,0,6"/><TextBox Text="{Binding First,UpdateSourceTrigger=PropertyChanged}" MaxLength="5" AutomationProperties.Name="Primera fila de datos"/></StackPanel>
+                <StackPanel Width="120" Margin="0,0,0,12"><TextBlock Text="Última fila *" Margin="0,0,0,6"/><TextBox Text="{Binding Last,UpdateSourceTrigger=PropertyChanged}" MaxLength="5" AutomationProperties.Name="Última fila de datos"/></StackPanel>
+              </WrapPanel>
+              <ItemsControl ItemsSource="{Binding Columns}"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><StackPanel Width="210" Margin="0,0,14,12"><TextBlock Text="{Binding Label}" Margin="0,0,0,6"/><ComboBox ItemsSource="{Binding Choices}" SelectedIndex="{Binding Index}" AutomationProperties.Name="{Binding Label}"/></StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+              <WrapPanel><CheckBox IsChecked="{Binding PriceNextRow}" Content="Precio en la fila siguiente" VerticalAlignment="Center" Margin="0,0,20,8"/><Button Content="Preparar vista previa" Command="{Binding Preview}" Margin="0,0,0,8"/></WrapPanel>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
+          <DataGrid ItemsSource="{Binding Rows}" AutomationProperties.Name="Vista previa del catálogo" ScrollViewer.HorizontalScrollBarVisibility="Auto"><DataGrid.Columns>
+            <DataGridTemplateColumn Header="Incluir" Width="75" MinWidth="75"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding Include,UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Incluir fila"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+            <DataGridTextColumn Header="Fila" Binding="{Binding Row}" Width="65" MinWidth="65"/>
+            <DataGridTextColumn Header="Clave" Binding="{Binding Code}" Width="115" MinWidth="115"/>
+            <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" Width="*" MinWidth="240"/>
+            <DataGridTextColumn Header="Unidad" Binding="{Binding Unit}" Width="90" MinWidth="90"/>
+            <DataGridTextColumn Header="Cantidad" Binding="{Binding Quantity}" Width="120" MinWidth="120"/>
+            <DataGridTextColumn Header="P. unitario" Binding="{Binding Price}" Width="120" MinWidth="120"/>
+            <DataGridTextColumn Header="Revisión" Binding="{Binding Error}" Width="320" MinWidth="320"/>
+          </DataGrid.Columns></DataGrid>
+        </Border>
+        <StackPanel Grid.Row="3" Margin="0,12,0,0">
+          <TextBlock Text="{Binding Error}" Foreground="{DynamicResource Danger}"/>
+          <TextBlock Text="{Binding Summary}" Margin="0,4,0,10"/>
+          <WrapPanel><CheckBox IsChecked="{Binding Reviewed}" VerticalAlignment="Center" Margin="0,0,20,10"><TextBlock Text="Revisé las filas seleccionadas, precios y subtotal." MaxWidth="380"/></CheckBox><Button Content="Importar selección" Command="{Binding Import}" Style="{StaticResource Primary}" Margin="0,0,0,10"/></WrapPanel>
+        </StackPanel>
+      </Grid>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ProgramViewModel}">
+      <Grid Margin="28,24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="Presupuesto" Command="{Binding Back}" VerticalAlignment="Top"/><StackPanel><TextBlock Text="{Binding Work.Title}" Foreground="{DynamicResource Muted}"/><WrapPanel><TextBlock Text="{Binding Title}" Style="{StaticResource Heading}"/><Button Style="{StaticResource Help}" Click="Help_Click" ToolTip="Distribuye cantidades diarias por concepto y fija el programa cuando esté completo. Una vez fijado, el presupuesto y la distribución se conservan. Los avances son acumulados por fecha; no se suman entre cortes. Selecciona una fila para ver los días o el historial. Las penalizaciones se gestionan fuera de Trazal."/></WrapPanel></StackPanel></DockPanel>
+        <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+          <Button Content="{Binding SwitchLabel}" Command="{Binding Switch}" Margin="0,0,12,8"/>
+          <Button Content="Distribuir fechas" Command="{Binding Distribute}" Visibility="{Binding Editable,Converter={StaticResource BoolVisibility}}" Margin="0,0,12,8"/>
+          <Button Content="Agregar día" Command="{Binding Day}" Visibility="{Binding Editable,Converter={StaticResource BoolVisibility}}" Margin="0,0,12,8"/>
+          <Button Content="Fijar programa" Command="{Binding Freeze}" Visibility="{Binding Editable,Converter={StaticResource BoolVisibility}}" Style="{StaticResource Primary}" Margin="0,0,12,8"/>
+          <Button Content="Registrar avance" Command="{Binding Record}" Visibility="{Binding IsProgress,Converter={StaticResource BoolVisibility}}" Style="{StaticResource Primary}" Margin="0,0,12,8"/>
+        </WrapPanel>
+        <WrapPanel Grid.Row="2" Margin="0,0,0,12">
+          <TextBlock Text="Fecha de corte" VerticalAlignment="Center" Margin="0,0,12,0"/><DatePicker SelectedDate="{Binding Cut}" Width="160" Margin="0,0,18,0" AutomationProperties.Name="Fecha de corte"/>
+          <TextBlock Text="{Binding State}" VerticalAlignment="Center" Foreground="{DynamicResource Muted}"/>
+        </WrapPanel>
+        <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0"><Grid>
+          <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}" Visibility="{Binding IsPlan,Converter={StaticResource BoolVisibility}}" AutomationProperties.Name="Programa por concepto" ScrollViewer.HorizontalScrollBarVisibility="Auto"><DataGrid.Columns>
+            <DataGridTextColumn Header="Clave" Binding="{Binding Code}" Width="100" MinWidth="100"/>
+            <DataGridTextColumn Header="Concepto" Binding="{Binding Description}" Width="*" MinWidth="230"/>
+            <DataGridTextColumn Header="Unidad" Binding="{Binding Unit}" Width="80" MinWidth="80"/>
+            <DataGridTextColumn Header="Contratado" Binding="{Binding Quantity,StringFormat={}{0:0.####}}" Width="125" MinWidth="125"/>
+            <DataGridTextColumn Header="Distribuido" Binding="{Binding Scheduled,StringFormat={}{0:0.####}}" Width="125" MinWidth="125"/>
+            <DataGridTextColumn Header="Distribución" Binding="{Binding Coverage}" Width="195" MinWidth="195"/>
+          </DataGrid.Columns></DataGrid>
+          <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}" Visibility="{Binding IsProgress,Converter={StaticResource BoolVisibility}}" AutomationProperties.Name="Avance por concepto" ScrollViewer.HorizontalScrollBarVisibility="Auto"><DataGrid.Columns>
+            <DataGridTextColumn Header="Clave" Binding="{Binding Code}" Width="100" MinWidth="100"/>
+            <DataGridTextColumn Header="Concepto" Binding="{Binding Description}" Width="*" MinWidth="230"/>
+            <DataGridTextColumn Header="Plan (%)" Binding="{Binding PlannedPercent,StringFormat={}{0:0.##}}" Width="105" MinWidth="105"/>
+            <DataGridTextColumn Header="Real (%)" Binding="{Binding Percent,StringFormat={}{0:0.##}}" Width="105" MinWidth="105"/>
+            <DataGridTextColumn Header="Acumulado" Binding="{Binding Actual,StringFormat={}{0:0.####}}" Width="130" MinWidth="130"/>
+            <DataGridTextColumn Header="Unidad" Binding="{Binding Unit}" Width="80" MinWidth="80"/>
+            <DataGridTextColumn Header="Al corte" Binding="{Binding State}" Width="205" MinWidth="205"/>
+          </DataGrid.Columns></DataGrid>
+        </Grid></Border>
+        <TextBlock Grid.Row="4" Text="{Binding Detail}" FontWeight="SemiBold" Margin="0,14,0,10"/>
+        <Border Grid.Row="5" Style="{StaticResource Card}" Padding="0">
+          <Grid>
+            <DataGrid ItemsSource="{Binding Days}" Visibility="{Binding IsPlan,Converter={StaticResource BoolVisibility}}" AutomationProperties.Name="Distribución diaria"><DataGrid.Columns>
+              <DataGridTextColumn Header="Fecha programada" Binding="{Binding Date,StringFormat={}{0:dd/MM/yyyy}}" Width="200"/>
+              <DataGridTextColumn Header="Cantidad del día" Binding="{Binding Quantity,StringFormat={}{0:0.####}}" Width="*"/>
+              <DataGridTemplateColumn Width="120"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="Ajustar" Command="{Binding DataContext.EditDay,RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource Quiet}" Padding="6"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+            </DataGrid.Columns></DataGrid>
+            <DataGrid ItemsSource="{Binding History}" Visibility="{Binding IsProgress,Converter={StaticResource BoolVisibility}}" AutomationProperties.Name="Historial de avances"><DataGrid.Columns>
+              <DataGridTextColumn Header="Fecha de medición" Binding="{Binding Date,StringFormat={}{0:dd/MM/yyyy}}" Width="180"/>
+              <DataGridTextColumn Header="Cantidad acumulada" Binding="{Binding Quantity,StringFormat={}{0:0.##########}}" Width="210"/>
+              <DataGridTextColumn Header="Observación" Binding="{Binding Note}" Width="*" MinWidth="240"/>
+            </DataGrid.Columns></DataGrid>
+          </Grid>
+        </Border>
+        <StackPanel Grid.Row="6" Margin="0,12,0,0"><TextBlock Text="{Binding Summary}" Foreground="{DynamicResource Muted}"/><TextBlock Text="{Binding Totals}" Margin="0,6,0,0"/></StackPanel>
+      </Grid>
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vm:HomeViewModel}">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="32,28,32,24">
@@ -167,17 +260,23 @@
             <TextBlock Text="{Binding Scope}" Foreground="{DynamicResource Muted}" />
           </StackPanel>
         </DockPanel>
-        <DockPanel Grid.Row="1" Margin="0,0,0,20">
-          <Button DockPanel.Dock="Right" Content="＋  Agregar concepto" Style="{StaticResource Primary}" Command="{Binding Add}" />
-          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+          <WrapPanel Margin="0,0,0,12">
+            <Button Content="＋ Agregar concepto" Style="{StaticResource Primary}" Command="{Binding Add}" Margin="0,0,10,8"/>
+            <Button Content="Importar Excel" Command="{Binding Import}" Margin="0,0,10,8"/>
+            <Button Content="Programa de obra" Command="{Binding Program}" Margin="0,0,10,8"/>
+            <Button Content="Avance real" Command="{Binding Progress}" Margin="0,0,0,8"/>
+          </WrapPanel>
+          <StackPanel Orientation="Horizontal">
             <TextBlock Text="Catálogo y presupuesto" Style="{StaticResource SectionTitle}" />
             <Button Style="{StaticResource Help}" AutomationProperties.Name="Ayuda del presupuesto" Click="Help_Click">
               <Button.ToolTip>
-                <TextBlock Text="Captura cantidades y precios unitarios sin IVA. Cada obra conserva sus propios precios. El análisis detallado de precios y la importación de Excel se incorporarán en el siguiente hito." />
+                <TextBlock Text="Captura cantidades y precios unitarios sin IVA o importa el catálogo de Excel. Cada obra conserva sus propios precios. Al fijar el programa se protege este catálogo. El análisis detallado de precios se incorporará después." />
               </Button.ToolTip>
             </Button>
           </StackPanel>
-        </DockPanel>
+          <TextBlock Text="Línea base fijada · catálogo protegido" Visibility="{Binding Frozen,Converter={StaticResource BoolVisibility}}" Foreground="{DynamicResource Muted}" Margin="0,8,0,0"/>
+        </StackPanel>
         <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
           <Grid>
             <DataGrid ItemsSource="{Binding Concepts}" AutomationProperties.Name="Conceptos de la obra">
@@ -315,7 +414,7 @@
           <DockPanel>
             <StackPanel DockPanel.Dock="Bottom">
               <Button Content="Guardar respaldo" Command="{Binding Backup}" FontSize="14" Padding="10" ToolTip="Guarda una copia de las obras y el perfil en un archivo .trazal." />
-              <TextBlock Text="VISTA PREVIA · 0.2" FontSize="11" Foreground="{DynamicResource Muted}" Margin="8,18,0,0" />
+              <TextBlock Text="VISTA PREVIA · 0.3" FontSize="11" Foreground="{DynamicResource Muted}" Margin="8,18,0,0" />
             </StackPanel>
             <StackPanel>
               <TextBlock Text="ESPACIO DE TRABAJO" FontSize="11" Foreground="{DynamicResource Muted}" Margin="8,0,0,20" />
@@ -324,8 +423,6 @@
               <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="8,28,8,0" Padding="0,22,0,0">
                 <StackPanel>
                   <TextBlock Text="EN DESARROLLO" FontSize="11" Foreground="{DynamicResource Muted}" />
-                  <TextBlock Text="Programa de obra" Foreground="{DynamicResource Muted}" FontSize="14" Margin="0,17,0,0" />
-                  <TextBlock Text="Avance real" Foreground="{DynamicResource Muted}" FontSize="14" Margin="0,17,0,0" />
                   <TextBlock Text="Curva S y reportes" Foreground="{DynamicResource Muted}" FontSize="14" Margin="0,17,0,0" />
                 </StackPanel>
               </Border>
