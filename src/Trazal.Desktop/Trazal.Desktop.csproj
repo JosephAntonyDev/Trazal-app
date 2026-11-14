@@ -1,6 +1,8 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <OutputType>WinExe</OutputType>
     <AssemblyName>Trazal</AssemblyName>
     <RootNamespace>Trazal.Desktop</RootNamespace>
@@ -13,6 +15,21 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xaml" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="PdfSharp-gdi"><HintPath>..\..\build\packages\pdfsharp\lib\net462\PdfSharp-gdi.dll</HintPath></Reference>
+    <Reference Include="PdfSharp.Cryptography"><HintPath>..\..\build\packages\pdfsharp\lib\net462\PdfSharp.Cryptography.dll</HintPath></Reference>
+    <Reference Include="PdfSharp.Shared"><HintPath>..\..\build\packages\pdfsharp\lib\net462\PdfSharp.Shared.dll</HintPath></Reference>
+    <Reference Include="PdfSharp.System"><HintPath>..\..\build\packages\pdfsharp\lib\net462\PdfSharp.System.dll</HintPath></Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions"><HintPath>..\..\build\packages\logging\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath></Reference>
+    <Reference Include="System.Security.Cryptography.Pkcs"><HintPath>..\..\build\packages\pkcs\lib\net462\System.Security.Cryptography.Pkcs.dll</HintPath></Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions"><HintPath>..\..\build\packages\di\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath></Reference>
+    <Reference Include="System.Buffers"><HintPath>..\..\build\packages\buffers\lib\net461\System.Buffers.dll</HintPath></Reference>
+    <Reference Include="System.Memory"><HintPath>..\..\build\packages\memory\lib\net461\System.Memory.dll</HintPath></Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe"><HintPath>..\..\build\packages\unsafe\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath></Reference>
+    <Reference Include="System.Numerics.Vectors"><HintPath>..\..\build\packages\vectors\lib\net46\System.Numerics.Vectors.dll</HintPath></Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces"><HintPath>..\..\build\packages\asyncinterfaces\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath></Reference>
+    <Reference Include="System.Threading.Tasks.Extensions"><HintPath>..\..\build\packages\tasks\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath></Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -35,6 +52,10 @@
     <Compile Include="ImportViewModel.cs" />
     <Compile Include="ProgramViewModel.cs" />
     <Compile Include="PlanningCommands.cs" />
+    <Compile Include="PerformanceViewModel.cs" />
+    <Compile Include="CurveChart.cs" />
+    <Compile Include="PdfReport.cs" />
+    <Compile Include="ReportCommands.cs" />
     <Compile Include="Theme.cs" />
     <Compile Include="ResponsivePanel.cs" />
     <Compile Include="AssemblyInfo.cs" />

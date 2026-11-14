@@ -1,6 +1,8 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <OutputType>Exe</OutputType>
     <AssemblyName>Trazal.Tests</AssemblyName>
     <ProjectGuid>{D51722F8-99A1-4B64-9339-AB08D7B87E04}</ProjectGuid>
@@ -28,7 +30,7 @@
       <Name>Trazal.Data</Name>
     </ProjectReference>
     <Compile Include="Program.cs" />
-    <Compile Include="WorkflowTests.cs" />
+    <Compile Include="WorkflowTests.cs" /><Compile Include="ReportingTests.cs" />
     <Content Include="..\..\build\packages\sqlite\build\net46\x64\SQLite.Interop.dll">
       <Link>x64\SQLite.Interop.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

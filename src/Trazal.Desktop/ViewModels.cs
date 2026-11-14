@@ -134,6 +134,7 @@ namespace Trazal.Desktop
         public ICommand Import { get; }
         public ICommand Program { get; }
         public ICommand Progress { get; }
+        public ICommand Performance { get; }
         public bool Frozen { get; }
         public ICommand Add { get; }
         public ICommand Edit { get; }
@@ -146,6 +147,7 @@ namespace Trazal.Desktop
             Import = new ActionCommand(_ => shell.OpenImport(work), _ => !Frozen);
             Program = new ActionCommand(_ => shell.OpenProgram(work));
             Progress = new ActionCommand(_ => shell.OpenProgram(work, true));
+            Performance = new ActionCommand(_ => shell.OpenPerformance(work));
             Add = new ActionCommand(_ => shell.EditConcept(work, null), _ => !Frozen);
             Edit = new ActionCommand(_ => shell.EditWork(work));
             EditConcept = new ActionCommand(c => shell.EditConcept(work, (Concept)c), _ => !Frozen);
@@ -163,7 +165,12 @@ namespace Trazal.Desktop
         private object page;
         private Editor dialog;
         private string theme, status = "", location = "Mis obras";
-        private bool busy;
+        private bool busyValue;
+        private bool busy
+        {
+            get => busyValue;
+            set { if (busyValue == value) return; busyValue = value; Notify(nameof(IsBusy)); CommandManager.InvalidateRequerySuggested(); }
+        }
         public object Page
         {
             get => page;
@@ -174,7 +181,7 @@ namespace Trazal.Desktop
                 Notify(nameof(IsProfileSection));
             }
         }
-        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel;
+        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel || Page is PerformanceViewModel;
         public bool IsProfileSection => Page is ProfileViewModel;
         public Editor Dialog { get => dialog; private set { Set(ref dialog, value); Notify(nameof(DialogOpen)); } }
         public bool DialogOpen => Dialog != null;
@@ -196,6 +203,8 @@ namespace Trazal.Desktop
             ShowProfile = new ActionCommand(_ => OpenProfile());
             CreateWork = new ActionCommand(_ => EditWork(null));
             Backup = new ActionCommand(async _ => await SaveBackup(), _ => !busy);
+            ManageBackups = new ActionCommand(_ => OpenBackupOptions(), _ => !busy && !DialogOpen);
+            RestoreBackup = new ActionCommand(async _ => await ChooseRestore(), _ => !busy && !DialogOpen);
             OpenHome();
         }
         private void Safe(Action action) { try { action(); } catch (Exception ex) { Status = "No se completó la operación: " + ex.Message; } }

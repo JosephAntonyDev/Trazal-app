@@ -12,7 +12,8 @@ namespace Trazal.Data
     {
         public string FilePath { get; }
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-        public LocalStore(string path)
+        public LocalStore(string path) : this(path, true) { }
+        internal LocalStore(string path, bool migrationBackup)
         {
             FilePath = Path.GetFullPath(path);
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
@@ -20,7 +21,7 @@ namespace Trazal.Data
             {
                 var version = Convert.ToInt32(Scalar(db, "PRAGMA user_version"));
                 if (version > 3) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
-                if (version > 0 && version < 3) Backup(FilePath + ".v" + version + "-" + Guid.NewGuid().ToString("N") + ".trazal");
+                if (migrationBackup && version > 0 && version < 3) Backup(FilePath + ".v" + version + "-" + Guid.NewGuid().ToString("N") + ".trazal");
                 using (var tx = db.BeginTransaction())
                 {
                     Execute(db, @"CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,title TEXT NOT NULL,type TEXT NOT NULL,scope TEXT NOT NULL,vat TEXT,created TEXT NOT NULL);

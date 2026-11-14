@@ -1,4 +1,4 @@
-TRAZAL — VISTA PREVIA 0.3.0
+TRAZAL — VISTA PREVIA 0.4.0
 
 Extrae la carpeta completa y abre Trazal.exe. Conserva las DLL y las carpetas x86/x64 junto al ejecutable.
 Requiere .NET Framework 4.8. Destino previsto: Windows 7 SP1 o posterior; todavía pendiente de validación en Windows 7 real.
@@ -23,3 +23,12 @@ La migración a esquema v3 crea una copia previa de bases v1/v2. Continúa con e
 Los datos se guardan en %LOCALAPPDATA%\Trazal\Preview\trazal.db.
 El respaldo .trazal es una copia SQLite sin cifrar; incluye obras y perfil. No es compatible con el JSON del mockup.
 No requiere conexión ni cuenta. No hay activación de licencia en esta vista previa.
+
+NOVEDADES 0.4.0
+Entra a una obra > Curva S y reportes. Selecciona el corte y consulta programa,
+avance y gastos sin IVA. Exporta PDF o Excel desde esa vista.
+Para recuperar datos: Restaurar respaldo en el menú lateral, o Respaldos en
+ventanas compactas. Revisa y confirma: reemplaza todas las obras y el perfil.
+Se conserva una copia automática anterior junto a la base de datos.
+La hoja Excel Curva S contiene los datos; la gráfica se incluye en el PDF.
+CPI es orientativo y no equivale a utilidad contable.

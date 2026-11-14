@@ -6,7 +6,7 @@ Es una vista previa funcional; **no tiene todavía todas las funciones del mocku
 
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.3.0-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.3.0-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.4.0-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.4.0-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 
@@ -54,9 +54,9 @@ Herramientas: Windows moderno, Visual Studio 2022 o Build Tools con MSBuild y co
 
 La compilación del script se guarda en `build/output/Release/app` y las pruebas en `build/output/Release/tests`, separadas del ejecutable que pueda estar abierto desde Visual Studio. Para una revisión visual aislada: `build/output/Release/tests/Trazal.Tests.exe --ui-preview .qa/revision`. Esa ventana usa una obra ficticia y sus propios datos.
 
-La primera ejecución descarga **tres paquetes oficiales de NuGet en `build/packages`**, fijados por versión y SHA-256; las posteriores pueden usar la caché sin internet. No instala herramientas globales ni usa un .NET SDK moderno. Referencias de compilación 4.8 a través de NuGet; runtime del cliente por separado. Abre `Trazal.sln` después de preparar las dependencias y selecciona Trazal.Desktop como proyecto de inicio.
+La primera ejecución descarga **paquetes oficiales de NuGet en `build/packages`**, fijados por versión y SHA-256; las posteriores pueden usar la caché sin internet. No instala herramientas globales ni usa un .NET SDK moderno. Referencias de compilación 4.8 a través de NuGet; runtime del cliente por separado. Abre `Trazal.sln` después de preparar las dependencias y selecciona Trazal.Desktop como proyecto de inicio.
 
-47 pruebas ejecutables verifican importación y selección de filas, archivos XLSX sintéticos, números, distribución, línea base inmutable, cortes retroactivos, límite del 100 %, persistencia, migraciones y respaldos. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
+66 pruebas ejecutables verifican importación y selección de filas, archivos XLSX sintéticos, números, distribución, línea base inmutable, cortes retroactivos, límite del 100 %, persistencia, migraciones y respaldos. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
 
 ## Estructura
 
@@ -73,12 +73,27 @@ Los precios/cantidades se persisten como texto decimal invariante para evitar p�
 
 Las tablas virtualizan filas/columnas. Los listados iniciales aún consultan todas las obras y agregan cantidades/precios para sus totales; **paginación y agregados persistidos quedan pendientes** antes de validar volúmenes grandes. No se han demostrado todavía los objetivos de memoria o arranque en 4 GB.
 
+## Curva S, reportes y restauración (0.4.0)
+
+En una obra abre **Curva S y reportes**. Selecciona el corte con el calendario. El programa azul conserva toda la distribución, incluso las fechas posteriores al corte. Ejecutado gris y gastos rojos terminan en el corte. Las tres series son acumuladas sin IVA, escalonadas por fecha registrada; pasar el puntero muestra valores y **Detalle por fecha** ofrece la tabla accesible.
+
+- PV: suma del importe de cada concepto multiplicado por su cantidad programada acumulada / cantidad contratada.
+- EV: mismo cálculo con la última cantidad ejecutada acumulada; nunca se suman mediciones acumuladas. El porcentaje global se pondera por importe, no es el promedio simple de porcentajes.
+- AC: todos los gastos de esta obra fechados hasta el corte, sin IVA.
+- SPI = EV/PV; CPI = EV/AC. Sin denominador se muestra **No disponible**; sin línea base fijada no se presentan índices. CPI es orientativo: precios con utilidad y compras anticipadas no son una base de costo devengado. No representa utilidad contable. [Referencia de las fórmulas](https://www.pmi.org/learning/library/practical-calculation-schedule-variance-7028).
+- Se redondea el acumulado por concepto a dos decimales, como en la vista de programa, para conservar el total del presupuesto.
+
+**Exportar PDF** crea un documento paginado con gráfica, resumen, presupuesto, período programado por concepto, historial de avances al corte, gastos y totales por categoría. **Exportar Excel** agrega el detalle de los puntos de la curva y el programa diario completo en ocho hojas, con fechas e importes tipados, claves de texto, filtros y encabezados congelados. Son instantáneas de consulta; editar el archivo no modifica Trazal. El PDF incluye la gráfica; la hoja Curva S de Excel contiene los valores, sin gráfico incrustado. No requieren Office ni internet para exportar. El archivo anterior se reemplaza únicamente tras completar la escritura.
+
+**Restaurar respaldo** está en el menú lateral. En ventanas compactas, pulsa **Respaldos → Restaurar un respaldo**. Selecciona un `.trazal`, revisa obras, conceptos, gastos, avances y perfil, y confirma el reemplazo. Se reemplaza todo el espacio local, no se combinan obras. Se verifica integridad, esquema, referencias y cantidades antes de aplicar. Los respaldos v1/v2 migran en una copia temporal; el original no se modifica. Antes del cambio se conserva `Antes-de-restaurar-<fecha>-<id>.trazal` junto a la base activa; la ruta aparece en la barra de estado. Cancelar no altera los datos. Mantén copias también fuera del disco del equipo.
+
+Prueba visual aislada: `build/output/Release/tests/Trazal.Tests.exe --reports-ui .qa/reports`. Usa datos ficticios y genera muestras PDF/XLSX. Pruebas adicionales cubren corte histórico, adelanto con sobrecosto indicativo, denominadores cero, límite del 100 %, archivos exportados, fallos de escritura, restauración y copias anteriores.
+
 ## Próximo hito
 
-1. Ejecutar este paquete en el Windows 7 real: abrir, crear/editar, cerrar/reabrir, cambiar tema y respaldar. Registrar SP1, arquitectura, RAM, escala y errores.
-2. Ampliar pruebas de formatos Excel y agregar PDF; generar instalador y probar actualización sin perder datos.
-3. Añadir recuperación guiada como copia con validación; documentar esquema y migraciones antes del piloto.
-4. Contrastar cálculos con Excel autorizado y acordar redondeo, utilidad/indirectos y significado de gastos.
-5. Implementar curva S enlazando programa fijo, avances y gastos; añadir correcciones de cortes con historial.
+1. Probar en el Windows 7 SP1 real, incluyendo exportación PDF/XLSX y restauración. Registrar arquitectura, RAM, escala, rendimiento y errores. La compatibilidad no está certificada por compilar contra .NET 4.8.
+2. Contrastar cifras con el ingeniero y el Excel autorizado; acordar redondeo, indirectos/utilidad y criterio contable de gastos.
+3. Correcciones de avances con historial; ampliar formatos de importación y evaluar importación del programa original.
+4. Generar instalador, actualizaciones y licenciamiento; medir grandes catálogos antes de producción.
 
 Los archivos del cliente quedan fuera del repositorio. Este código se mantiene en un repositorio local independiente; no se publica automáticamente en el repo público del mockup. Dependencias y términos: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
