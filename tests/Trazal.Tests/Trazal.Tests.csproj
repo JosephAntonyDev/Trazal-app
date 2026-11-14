@@ -30,7 +30,7 @@
       <Name>Trazal.Data</Name>
     </ProjectReference>
     <Compile Include="Program.cs" />
-    <Compile Include="WorkflowTests.cs" /><Compile Include="ReportingTests.cs" />
+    <Compile Include="WorkflowTests.cs" /><Compile Include="ReportingTests.cs" /><Compile Include="SyncTests.cs" />
     <Content Include="..\..\build\packages\sqlite\build\net46\x64\SQLite.Interop.dll">
       <Link>x64\SQLite.Interop.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

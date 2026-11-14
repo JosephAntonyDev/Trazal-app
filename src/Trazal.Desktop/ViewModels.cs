@@ -179,6 +179,7 @@ namespace Trazal.Desktop
                 if (!Set(ref page, value)) return;
                 Notify(nameof(IsWorksSection));
                 Notify(nameof(IsProfileSection));
+                Notify(nameof(IsSyncSection));
             }
         }
         public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel || Page is PerformanceViewModel;
@@ -201,6 +202,7 @@ namespace Trazal.Desktop
             this.store = store; profile = store.GetProfile(); theme = store.GetSetting("theme", "Sistema");
             Home = new ActionCommand(_ => Safe(OpenHome));
             ShowProfile = new ActionCommand(_ => OpenProfile());
+            ShowSync = new ActionCommand(_ => Safe(OpenSync));
             CreateWork = new ActionCommand(_ => EditWork(null));
             Backup = new ActionCommand(async _ => await SaveBackup(), _ => !busy);
             ManageBackups = new ActionCommand(_ => OpenBackupOptions(), _ => !busy && !DialogOpen);

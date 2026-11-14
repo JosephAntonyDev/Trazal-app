@@ -20,8 +20,8 @@ namespace Trazal.Data
             using (var db = Open())
             {
                 var version = Convert.ToInt32(Scalar(db, "PRAGMA user_version"));
-                if (version > 3) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
-                if (migrationBackup && version > 0 && version < 3) Backup(FilePath + ".v" + version + "-" + Guid.NewGuid().ToString("N") + ".trazal");
+                if (version > 4) throw new InvalidOperationException("Estos datos requieren una versión más reciente de Trazal.");
+                if (migrationBackup && version > 0 && version < 4) Backup(FilePath + ".v" + version + "-" + Guid.NewGuid().ToString("N") + ".trazal");
                 using (var tx = db.BeginTransaction())
                 {
                     Execute(db, @"CREATE TABLE IF NOT EXISTS works(id TEXT PRIMARY KEY,title TEXT NOT NULL,type TEXT NOT NULL,scope TEXT NOT NULL,vat TEXT,created TEXT NOT NULL);
@@ -33,7 +33,8 @@ CREATE INDEX IF NOT EXISTS ix_expenses_work_date ON expenses(work_id,date);
 CREATE TABLE IF NOT EXISTS planned_days(concept_id TEXT NOT NULL REFERENCES concepts(id),date TEXT NOT NULL,quantity TEXT NOT NULL,PRIMARY KEY(concept_id,date));
 CREATE TABLE IF NOT EXISTS baselines(work_id TEXT PRIMARY KEY REFERENCES works(id),approved TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS progress(id TEXT PRIMARY KEY,concept_id TEXT NOT NULL REFERENCES concepts(id),date TEXT NOT NULL,quantity TEXT NOT NULL,note TEXT NOT NULL,UNIQUE(concept_id,date));
-PRAGMA user_version=3;", tx);
+PRAGMA user_version=4;", tx);
+                    Execute(db, SyncSchema, tx);
                     tx.Commit();
                 }
             }

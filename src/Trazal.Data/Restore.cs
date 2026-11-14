@@ -48,7 +48,7 @@ namespace Trazal.Data
         {
             if (Convert.ToString(Scalar(db, "PRAGMA integrity_check")) != "ok") throw new ArgumentException("El respaldo está dañado.");
             var version = Convert.ToInt32(Scalar(db, "PRAGMA user_version"));
-            if (version < 1 || version > 3) throw new ArgumentException("Versión de respaldo no compatible. Usa una versión de Trazal que lo admita.");
+            if (version < 1 || version > 4) throw new ArgumentException("Versión de respaldo no compatible. Usa una versión de Trazal que lo admita.");
             if (Convert.ToInt32(Scalar(db, "SELECT COUNT(*) FROM sqlite_master WHERE type IN ('trigger','view')")) != 0) throw new ArgumentException("El archivo contiene una estructura no reconocida.");
             var queries = new[] { "SELECT id,title,type,scope,vat,created FROM works LIMIT 0", "SELECT id,work_id,code,description,unit,quantity,price FROM concepts LIMIT 0", "SELECT key,value FROM settings LIMIT 0" };
             foreach (var query in queries) Execute(db, query);
@@ -106,6 +106,7 @@ namespace Trazal.Data
         {
             if (prepared == null || !File.Exists(prepared.FilePath)) throw new ArgumentException("Vuelve a seleccionar el respaldo.");
             var staged = new LocalStore(prepared.FilePath); staged.ValidateRestoredData(prepared);
+            staged.ResetSyncAfterRestore(); // A restored backup must never replay an old upload or account binding.
             var safety = Path.Combine(Path.GetDirectoryName(FilePath), "Antes-de-restaurar-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N") + ".trazal");
             Backup(safety); // Failure here never changes the active database.
             File.Replace(prepared.FilePath, FilePath, null); // Same volume, atomic replacement after validation.
