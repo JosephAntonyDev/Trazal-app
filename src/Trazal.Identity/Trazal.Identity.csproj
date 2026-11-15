@@ -1,0 +1,20 @@
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Trazal.Identity</AssemblyName>
+    <RootNamespace>Trazal.Identity</RootNamespace>
+    <ProjectGuid>{D51722F8-99A1-4B64-9339-AB08D7B87E05}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System"/><Reference Include="System.Core"/><Reference Include="System.Net.Http"/>
+    <Reference Include="System.Runtime.Serialization"/><Reference Include="System.Security"/><Reference Include="System.Xml"/>
+    <Compile Include="Domain\Identity.cs"/>
+    <Compile Include="Application\Ports.cs"/>
+    <Compile Include="Application\AccountSession.cs"/>
+    <Compile Include="Adapters\Firebase\FirebaseIdentityProvider.cs"/>
+    <Compile Include="Adapters\Windows\ProtectedSessionStore.cs"/>
+    <Compile Include="Adapters\Files\IdentityConfiguration.cs"/>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

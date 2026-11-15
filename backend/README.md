@@ -1,5 +1,7 @@
 # Trazal API · 0.5.0
 
+> Copia histórica. El desarrollo y despliegue actuales están en [Trazal-API-TS](https://github.com/JosephAntonyDev/Trazal-API-TS). No continuar cambios ni desplegar desde esta carpeta.
+
 Backend TypeScript para Cloudflare Workers. PostgreSQL conserva documentos JSONB de obra con revisiones; SQLite sigue siendo la base de trabajo del escritorio. No requiere un servidor Node permanente. El código está dentro de Trazal-app; no se ha desplegado ni conectado a cuentas reales.
 
 ## Qué funciona

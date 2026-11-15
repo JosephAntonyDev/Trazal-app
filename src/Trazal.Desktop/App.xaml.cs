@@ -11,6 +11,7 @@ namespace Trazal.Desktop
     public partial class App : Application
     {
         private Mutex instance;
+        private Modules.Identity.Composition.AccountComposition accounts;
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -25,10 +26,10 @@ namespace Trazal.Desktop
                 bool first;
                 instance = new Mutex(true, "Local\\Trazal.Desktop.Preview", out first);
                 if (!first) { MessageBox.Show("Trazal ya está abierto. Revisa tu barra de tareas.", "Trazal"); Shutdown(); return; }
-                var store = new LocalStore(Path.Combine(folder, "trazal.db"));
-                Theme.Apply(store.GetSetting("theme", "Sistema"));
-                var vm = new ShellViewModel(store);
-                MainWindow = new MainWindow { DataContext = vm };
+                var window = new MainWindow();
+                accounts = new Modules.Identity.Composition.AccountComposition(window, folder);
+                accounts.Open();
+                MainWindow = window;
                 MainWindow.Show();
             }
             catch (Exception ex)
@@ -37,6 +38,6 @@ namespace Trazal.Desktop
                 Shutdown(1);
             }
         }
-        protected override void OnExit(ExitEventArgs e) { instance?.Dispose(); Theme.Detach(); base.OnExit(e); }
+        protected override void OnExit(ExitEventArgs e) { accounts?.Dispose(); instance?.Dispose(); Theme.Detach(); base.OnExit(e); }
     }
 }

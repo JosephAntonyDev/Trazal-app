@@ -180,6 +180,7 @@ namespace Trazal.Desktop
                 Notify(nameof(IsWorksSection));
                 Notify(nameof(IsProfileSection));
                 Notify(nameof(IsSyncSection));
+                Notify(nameof(IsAccountSection));
             }
         }
         public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel || Page is PerformanceViewModel;
@@ -203,6 +204,7 @@ namespace Trazal.Desktop
             Home = new ActionCommand(_ => Safe(OpenHome));
             ShowProfile = new ActionCommand(_ => OpenProfile());
             ShowSync = new ActionCommand(_ => Safe(OpenSync));
+            ShowAccount = new ActionCommand(_ => Safe(OpenAccount), _ => !busy && !DialogOpen);
             CreateWork = new ActionCommand(_ => EditWork(null));
             Backup = new ActionCommand(async _ => await SaveBackup(), _ => !busy);
             ManageBackups = new ActionCommand(_ => OpenBackupOptions(), _ => !busy && !DialogOpen);

@@ -30,6 +30,9 @@
       <Name>Trazal.Data</Name>
     </ProjectReference>
     <Compile Include="Program.cs" />
+    <ProjectReference Include="..\..\src\Trazal.Identity\Trazal.Identity.csproj"><Project>{D51722F8-99A1-4B64-9339-AB08D7B87E05}</Project><Name>Trazal.Identity</Name></ProjectReference>
+    <Compile Include="IdentityTests.cs"/>
+    <Reference Include="System.Net.Http"/>
     <Compile Include="WorkflowTests.cs" /><Compile Include="ReportingTests.cs" /><Compile Include="SyncTests.cs" />
     <Content Include="..\..\build\packages\sqlite\build\net46\x64\SQLite.Interop.dll">
       <Link>x64\SQLite.Interop.dll</Link>

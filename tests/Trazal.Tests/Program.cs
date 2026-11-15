@@ -19,6 +19,7 @@ namespace Trazal.Tests
         {
             if(args.Length==3 && args[0]=="--sync-http") return HttpSyncQa(args[1],args[2]);
             if(args.Length==2 && args[0]=="--sync-ui") { PreviewSyncQa(args[1]); return 0; }
+            if(args.Length==2 && args[0]=="--identity-ui") { PreviewIdentityQa(args[1]); return 0; }
             if(args.Length==2 && args[0]=="--qa-setup") { SeedQa(args[1]); return 0; }
             if(args.Length==2 && args[0]=="--ui-preview") { PreviewQa(args[1]); return 0; }
             if(args.Length==2 && (args[0]=="--reports-qa" || args[0]=="--reports-ui")) { ReportsQa(args[1],args[0]=="--reports-ui"); return 0; }
@@ -75,7 +76,7 @@ namespace Trazal.Tests
                     var savedExpense=db.GetExpenses(w2.Id).Single();Equal(0m,savedExpense.Vat);Equal(100m,savedExpense.Total);Equal(new DateTime(2026,11,13),savedExpense.Date);
                     shell.EditExpense(w2,savedExpense);shell.Dialog.Fields.Single(f=>f.Key=="vat").Value="";Equal(false,shell.Dialog.Save.CanExecute(null));shell.Dialog.Cancel.Execute(null);
                 });
-                Workflows(folder); ReportingTests(folder); SyncTests(folder);
+                Workflows(folder); ReportingTests(folder); SyncTests(folder); IdentityTests(folder);
                 Console.WriteLine(passed + " pruebas aprobadas."); return 0;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
