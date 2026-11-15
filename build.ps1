@@ -44,8 +44,10 @@ if ($Test) {
     & (Join-Path $testOutput 'Trazal.Tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas.' }
 }
+$authConfig = Join-Path $root 'authsettings.json'
+if (Test-Path -LiteralPath $authConfig) { Copy-Item -LiteralPath $authConfig -Destination (Join-Path $appOutput 'authsettings.json') -Force }
 if ($Package) {
-    $output = Join-Path $root 'artifacts\Trazal-0.6.0-preview'
+    $output = Join-Path $root 'artifacts\Trazal-0.6.1-preview'
     New-Item -ItemType Directory -Force $output | Out-Null
     Copy-Item (Join-Path $appOutput '*') $output -Recurse -Force
     Copy-Item (Join-Path $root 'LEEME.txt') $output -Force
@@ -54,6 +56,6 @@ if ($Package) {
     Copy-Item (Join-Path $root 'THIRD-PARTY-NOTICES.md') $output -Force
     Copy-Item (Join-Path $root 'ExcelDataReader-LICENSE.txt') $output -Force
     Copy-Item (Join-Path $root 'REPORTING-LICENSES.txt') $output -Force
-    Compress-Archive (Join-Path $output '*') (Join-Path $root 'artifacts\Trazal-0.6.0-preview.zip') -Force
+    Compress-Archive (Join-Path $output '*') (Join-Path $root 'artifacts\Trazal-0.6.1-preview.zip') -Force
     Write-Host "Paquete portable: $output"
 }

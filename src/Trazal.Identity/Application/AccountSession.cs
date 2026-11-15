@@ -49,6 +49,23 @@ namespace Trazal.Identity.Application
             finally { gate.Release(); }
         }
 
+        public async Task AuthenticateGoogleAsync(IGoogleAuthorization authorization, bool keepSession, CancellationToken cancellation)
+        {
+            if (authorization == null || !(provider is IGoogleIdentityProvider))
+                throw new IdentityException("configuration", "Falta configurar el acceso con Google para escritorio.");
+            await gate.WaitAsync(cancellation).ConfigureAwait(false);
+            try
+            {
+                var credential = await authorization.AuthorizeAsync(cancellation).ConfigureAwait(false);
+                var next = await ((IGoogleIdentityProvider)provider).SignInGoogleAsync(credential, cancellation).ConfigureAwait(false);
+                ValidateTokens(next);
+                cancellation.ThrowIfCancellationRequested();
+                if (keepSession) Save(next); else storage.Clear();
+                tokens = next; remember = keepSession; NeedsOnlineCheck = false;
+            }
+            finally { gate.Release(); }
+        }
+
         public async Task<string> GetIdTokenAsync(CancellationToken cancellation)
         {
             await gate.WaitAsync(cancellation).ConfigureAwait(false);

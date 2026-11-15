@@ -22,6 +22,16 @@ namespace Trazal.Identity.Application
         void Clear();
     }
 
+    public interface IGoogleAuthorization
+    {
+        Task<string> AuthorizeAsync(CancellationToken cancellation);
+    }
+
+    public interface IGoogleIdentityProvider
+    {
+        Task<IdentityTokens> SignInGoogleAsync(string googleIdToken, CancellationToken cancellation);
+    }
+
     public interface IClock { DateTime UtcNow { get; } }
     public sealed class SystemClock : IClock { public DateTime UtcNow => DateTime.UtcNow; }
 }

@@ -14,6 +14,9 @@ namespace Trazal.Identity.Adapters.Files
         [DataMember(Name = "apiKey")] public string ApiKey { get; set; }
         [DataMember(Name = "projectId")] public string ProjectId { get; set; }
         [DataMember(Name = "apiOrigin")] public string ApiOrigin { get; set; }
+        [DataMember(Name = "googleDesktopClientId")] public string GoogleDesktopClientId { get; set; }
+        [DataMember(Name = "googleDesktopClientSecret")] public string GoogleDesktopClientSecret { get; set; }
+        public bool IsGoogleConfigured => IsConfigured && Regex.IsMatch(GoogleDesktopClientId ?? "", "^[A-Za-z0-9_-]+\\.apps\\.googleusercontent\\.com$") && !string.IsNullOrWhiteSpace(GoogleDesktopClientSecret);
         public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey) && !string.IsNullOrWhiteSpace(ProjectId);
         public static IdentityConfiguration Load(string file)
         {
@@ -22,6 +25,8 @@ namespace Trazal.Identity.Adapters.Files
             config.ApiKey = Environment.GetEnvironmentVariable("TRAZAL_FIREBASE_API_KEY") ?? config.ApiKey;
             config.ProjectId = Environment.GetEnvironmentVariable("TRAZAL_FIREBASE_PROJECT_ID") ?? config.ProjectId;
             config.ApiOrigin = Environment.GetEnvironmentVariable("TRAZAL_API_ORIGIN") ?? config.ApiOrigin;
+            config.GoogleDesktopClientId = Environment.GetEnvironmentVariable("TRAZAL_GOOGLE_DESKTOP_CLIENT_ID") ?? config.GoogleDesktopClientId;
+            config.GoogleDesktopClientSecret = Environment.GetEnvironmentVariable("TRAZAL_GOOGLE_DESKTOP_CLIENT_SECRET") ?? config.GoogleDesktopClientSecret;
             if (config.IsConfigured && !Regex.IsMatch(config.ProjectId, "^[a-z][a-z0-9-]{4,62}$")) throw new ArgumentException("El projectId de Firebase no es válido.");
             if (!string.IsNullOrWhiteSpace(config.ApiOrigin))
             {

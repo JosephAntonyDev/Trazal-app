@@ -5,6 +5,7 @@ using Trazal.Identity.Application;
 using Trazal.Identity.Adapters.Files;
 using Trazal.Identity.Adapters.Firebase;
 using Trazal.Identity.Adapters.Windows;
+using Trazal.Identity.Adapters.Google;
 
 namespace Trazal.Desktop.Modules.Identity.Composition
 {
@@ -14,6 +15,7 @@ namespace Trazal.Desktop.Modules.Identity.Composition
         private readonly string root;
         private readonly IdentityConfiguration config;
         private readonly FirebaseIdentityProvider provider;
+        private readonly GoogleDesktopAuthorization google;
         private readonly AccountSession session;
         private CloudClient cloud;
         private readonly string configurationMessage = "El acceso con cuenta estará disponible cuando conectemos Firebase. Puedes seguir trabajando en tu espacio local.";
@@ -26,6 +28,7 @@ namespace Trazal.Desktop.Modules.Identity.Composition
             if (config.IsConfigured)
             {
                 provider = new FirebaseIdentityProvider(config.ApiKey);
+                if (config.IsGoogleConfigured) google = new GoogleDesktopAuthorization(config.GoogleDesktopClientId, config.GoogleDesktopClientSecret);
                 session = new AccountSession(provider, new ProtectedSessionStore(Path.Combine(root, "identity", config.ProjectId + ".session"), config.ProjectId), new SystemClock());
                 try { session.RestoreLocalSession(); }
                 catch (Exception) { /* Local works remain accessible; the user can authenticate again. */ }
@@ -37,7 +40,7 @@ namespace Trazal.Desktop.Modules.Identity.Composition
             var path = identity == null ? Path.Combine(root, "trazal.db") : AccountWorkspace.DatabasePath(root, config.ProjectId, identity.Uid);
             var store = new LocalStore(path);
             var shell = new ShellViewModel(store);
-            shell.ConfigureAccount(session, config.IsConfigured, configurationMessage, () => Open(true));
+            shell.ConfigureAccount(session, config.IsConfigured, configurationMessage, () => Open(true), google);
             cloud?.Dispose(); cloud = null;
             if (identity != null && identity.EmailVerified && !session.NeedsOnlineCheck && !string.IsNullOrWhiteSpace(config.ApiOrigin))
             {
@@ -49,6 +52,6 @@ namespace Trazal.Desktop.Modules.Identity.Composition
             window.DataContext = shell;
             if (showAccount) shell.ShowAccount.Execute(null);
         }
-        public void Dispose() { cloud?.Dispose(); provider?.Dispose(); }
+        public void Dispose() { cloud?.Dispose(); provider?.Dispose(); google?.Dispose(); }
     }
 }

@@ -11,6 +11,7 @@ using Trazal.Identity.Domain;
 using Trazal.Identity.Adapters.Firebase;
 using Trazal.Identity.Adapters.Files;
 using Trazal.Identity.Adapters.Windows;
+using Trazal.Identity.Adapters.Google;
 using Trazal.Desktop.Modules.Identity.Presentation;
 
 namespace Trazal.Tests
@@ -25,7 +26,7 @@ namespace Trazal.Tests
             public void Save(RememberedSession value) { Saved = value; }
             public void Clear() { Saved = null; }
         }
-        private sealed class FakeIdentity : IIdentityProvider
+        private sealed class FakeIdentity : IIdentityProvider, IGoogleIdentityProvider
         {
             public string Uid = "account-one";
             public bool Verified = true, RejectRefresh;
@@ -38,6 +39,7 @@ namespace Trazal.Tests
             };
             public Task<IdentityTokens> SignInAsync(string email, string password, CancellationToken cancellation) { LoginCalls++; return Task.FromResult(Tokens()); }
             public Task<IdentityTokens> RegisterAsync(string email, string password, CancellationToken cancellation) => SignInAsync(email, password, cancellation);
+            public Task<IdentityTokens> SignInGoogleAsync(string token, CancellationToken cancellation) { Equal("google-token", token); return Task.FromResult(Tokens()); }
             public async Task<IdentityTokens> RefreshAsync(string token, CancellationToken cancellation)
             {
                 RefreshCalls++; await Task.Delay(5, cancellation);
@@ -71,6 +73,7 @@ namespace Trazal.Tests
         }
         private static void IdentityTests(string root)
         {
+            GoogleIdentityTests();
             Check("Login valida antes de contactar al proveedor", () =>
             {
                 var provider = new FakeIdentity(); var session = new AccountSession(provider, new MemorySession(), provider.Clock);
@@ -197,6 +200,99 @@ namespace Trazal.Tests
                 {
                     try { provider.SignInAsync("a@example.com", "secret-password", CancellationToken.None).GetAwaiter().GetResult(); throw new Exception("Error aceptado"); }
                     catch (IdentityException ex) { Equal(false, ex.Message.Contains("secret")); }
+                }
+            });
+        }
+        private sealed class FakeGoogle : IGoogleAuthorization
+        {
+            public Task<string> AuthorizeAsync(CancellationToken cancellation) { cancellation.ThrowIfCancellationRequested(); return Task.FromResult("google-token"); }
+        }
+        private static Dictionary<string, string> OAuthFields(string query)
+        {
+            var fields = new Dictionary<string, string>();
+            foreach (var part in query.TrimStart('?').Split('&'))
+            {
+                var pair = part.Split(new[] { '=' }, 2);
+                fields.Add(Uri.UnescapeDataString(pair[0]), Uri.UnescapeDataString(pair[1].Replace("+", " ")));
+            }
+            return fields;
+        }
+        private static void GoogleIdentityTests()
+        {
+            Check("Google usa la misma sesión Firebase y persistencia opcional", () =>
+            {
+                var provider = new FakeIdentity(); var storage = new MemorySession();
+                var session = new AccountSession(provider, storage, provider.Clock);
+                session.AuthenticateGoogleAsync(new FakeGoogle(), true, CancellationToken.None).GetAwaiter().GetResult();
+                Equal(provider.Uid, session.Current.Uid); Equal("refresh-token", storage.Saved.RefreshToken);
+                session.AuthenticateGoogleAsync(new FakeGoogle(), false, CancellationToken.None).GetAwaiter().GetResult();
+                Equal(true, storage.Saved == null);
+                var vm = new AccountViewModel(session, true, "", () => { }, () => { }, null, new FakeGoogle());
+                Equal(false, vm.GoogleSignIn.CanExecute(null));
+            });
+            Check("Google no requiere campos de contraseña y falta de configuración deshabilita botón", () =>
+            {
+                var provider = new FakeIdentity(); var session = new AccountSession(provider, new MemorySession(), provider.Clock);
+                var pending = new AccountViewModel(session, true, "", () => { }, () => { });
+                Equal(false, pending.GoogleSignIn.CanExecute(null));
+                var ready = new AccountViewModel(session, true, "", () => { }, () => { }, null, new FakeGoogle());
+                Equal(true, ready.GoogleSignIn.CanExecute(null)); Equal(false, ready.Submit.CanExecute(null));
+            });
+            Check("Firebase intercambia Google por identidad verificada sin persistir credencial Google", () =>
+            {
+                var handler = new FirebaseHttp();
+                handler.Replies.Enqueue("{\"localId\":\"user-one\",\"idToken\":\"firebase-token\",\"refreshToken\":\"firebase-refresh\",\"expiresIn\":\"3600\"}");
+                handler.Replies.Enqueue("{\"users\":[{\"localId\":\"user-one\",\"email\":\"a@example.com\",\"emailVerified\":true}]}");
+                using (var provider = new FirebaseIdentityProvider("test-api-key", handler))
+                {
+                    var result = provider.SignInGoogleAsync("google-token", CancellationToken.None).GetAwaiter().GetResult();
+                    Equal("firebase-token", result.IdToken); Equal("firebase-refresh", result.RefreshToken);
+                    Equal(true, handler.Paths[0].Contains("accounts:signInWithIdp"));
+                    Equal(true, handler.Bodies[0].Contains("providerId=google.com")); Equal(true, result.Identity.EmailVerified);
+                }
+            });
+            Check("OAuth navegador exige state correcto y PKCE S256 en callback loopback real", () =>
+            {
+                var handler = new FirebaseHttp(); handler.Replies.Enqueue("{\"id_token\":\"google-token\"}");
+                Dictionary<string, string> auth = null; Task browser = null;
+                using (var stop = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+                using (var google = new GoogleDesktopAuthorization("test.apps.googleusercontent.com", "desktop-secret", url =>
+                {
+                    var uri = new Uri(url); Equal("accounts.google.com", uri.Host); auth = OAuthFields(uri.Query);
+                    Equal("S256", auth["code_challenge_method"]); Equal("openid email", auth["scope"]);
+                    browser = Task.Run(async () =>
+                    {
+                        using (var http = new HttpClient(new HttpClientHandler { UseProxy = false }))
+                        {
+                            using (var wrong = await http.GetAsync(auth["redirect_uri"] + "?state=wrong&code=wrong")) Equal(HttpStatusCode.BadRequest, wrong.StatusCode);
+                            using (var good = await http.GetAsync(auth["redirect_uri"] + "?state=" + auth["state"] + "&code=test-code"))
+                            {
+                                Equal(HttpStatusCode.OK, good.StatusCode);
+                                Equal(false, (await good.Content.ReadAsStringAsync()).Contains("test-code"));
+                            }
+                        }
+                    });
+                    browser.ContinueWith(_ => stop.Cancel(), TaskContinuationOptions.OnlyOnFaulted);
+                }, handler))
+                {
+                    try { Equal("google-token", google.AuthorizeAsync(stop.Token).GetAwaiter().GetResult()); }
+                    catch { if (browser?.IsFaulted == true) browser.GetAwaiter().GetResult(); throw; }
+                    browser.GetAwaiter().GetResult();
+                    var body = OAuthFields(handler.Bodies[0]); Equal("test-code", body["code"]);
+                    Equal(auth["redirect_uri"], body["redirect_uri"]); Equal("desktop-secret", body["client_secret"]);
+                    using (var sha = System.Security.Cryptography.SHA256.Create())
+                        Equal(auth["code_challenge"], Convert.ToBase64String(sha.ComputeHash(Encoding.ASCII.GetBytes(body["code_verifier"]))).TrimEnd('=').Replace('+', '-').Replace('/', '_'));
+                    Equal("https://oauth2.googleapis.com/token", handler.Paths[0]);
+                }
+            });
+            Check("Cancelar Google cierra el listener sin intercambiar credenciales", () =>
+            {
+                var handler = new FirebaseHttp();
+                using (var stop = new CancellationTokenSource())
+                using (var google = new GoogleDesktopAuthorization("test.apps.googleusercontent.com", "desktop-secret", _ => stop.Cancel(), handler))
+                {
+                    try { google.AuthorizeAsync(stop.Token).GetAwaiter().GetResult(); throw new Exception("No canceló"); }
+                    catch (OperationCanceledException) { Equal(0, handler.Paths.Count); }
                 }
             });
         }

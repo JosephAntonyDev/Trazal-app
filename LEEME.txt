@@ -1,4 +1,4 @@
-TRAZAL — VISTA PREVIA 0.6.0
+TRAZAL — VISTA PREVIA 0.6.1
 
 Extrae la carpeta completa y abre Trazal.exe. Conserva las DLL y las carpetas x86/x64 junto al ejecutable.
 Requiere .NET Framework 4.8. Destino previsto: Windows 7 SP1 o posterior; todavía pendiente de validación en Windows 7 real.
@@ -47,3 +47,6 @@ Recordar sesión es opcional y usa la protección del usuario de Windows.
 Cada cuenta tiene su propio espacio SQLite. El espacio local original se conserva.
 La sesión no se incluye en los respaldos. No se suben obras automáticamente.
 Consulta FIREBASE-Y-CUENTAS.md y authsettings.example.json para configurar el acceso.
+
+NOVEDADES 0.6.1
+Continuar con Google desde el navegador, con cancelación. Configura el cliente OAuth de escritorio como indica FIREBASE-Y-CUENTAS.md. Pendiente validación con cuentas reales y Windows 7.

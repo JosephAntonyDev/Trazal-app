@@ -1,5 +1,7 @@
 {
   "apiKey": "",
   "projectId": "",
-  "apiOrigin": ""
+  "apiOrigin": "",
+  "googleDesktopClientId": "",
+  "googleDesktopClientSecret": ""
 }

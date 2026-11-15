@@ -10,6 +10,11 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
     public sealed class AccountViewModel : Observable
     {
         private readonly AccountSession session;
+        private readonly IGoogleAuthorization google;
+        private CancellationTokenSource googleCancellation;
+        public bool GoogleConfigured => Configured && google != null;
+        public string GoogleHint => GoogleConfigured ? "Se abrirá tu navegador para elegir tu cuenta." : "Google estará disponible al configurar el cliente de escritorio.";
+        public bool WaitingForGoogle => googleCancellation != null;
         private readonly Action changed;
         private readonly Action<bool> setWorkspaceBusy;
         private string mode = "login", email = "", password = "", confirmation = "", message = "";
@@ -42,9 +47,12 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
         public ICommand Verify { get; }
         public ICommand RefreshIdentity { get; }
         public ICommand Back { get; }
+        public ICommand GoogleSignIn { get; }
+        public ICommand CancelGoogle { get; }
 
-        public AccountViewModel(AccountSession session, bool configured, string configurationMessage, Action changed, Action back, Action<bool> setWorkspaceBusy = null)
+        public AccountViewModel(AccountSession session, bool configured, string configurationMessage, Action changed, Action back, Action<bool> setWorkspaceBusy = null, IGoogleAuthorization google = null)
         {
+            this.google = google;
             this.session = session; this.changed = changed; this.setWorkspaceBusy = setWorkspaceBusy; Configured = configured; ConfigurationMessage = configurationMessage;
             LoginMode = new ActionCommand(_ => Switch("login"), _ => !working);
             RegisterMode = new ActionCommand(_ => Switch("register"), _ => !working);
@@ -58,6 +66,17 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
                 changed();
             }), _ => SignedIn && !working);
             Back = new ActionCommand(_ => back(), _ => !working);
+            GoogleSignIn = new ActionCommand(async _ => await Run(async () =>
+            {
+                using (googleCancellation = new CancellationTokenSource())
+                {
+                    Notify(nameof(WaitingForGoogle)); RefreshCommands();
+                    Message = "Completa el acceso en tu navegador. Después volverás a tu espacio en Trazal.";
+                    try { await session.AuthenticateGoogleAsync(google, remember, googleCancellation.Token); changed(); }
+                    finally { googleCancellation = null; Notify(nameof(WaitingForGoogle)); }
+                }
+            }), _ => GoogleConfigured && SignedOut && !working);
+            CancelGoogle = new ActionCommand(_ => googleCancellation?.Cancel(), _ => WaitingForGoogle);
         }
 
         private bool CanSubmit() => Configured && !working && SignedOut && Credentials.IsEmail(email)
@@ -85,6 +104,7 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
             if (working) return;
             working = true; Message = ""; UpdateWorking();
             try { await action(); }
+            catch (OperationCanceledException) { Message = "Acceso con Google cancelado. Puedes intentarlo de nuevo."; }
             catch (IdentityException ex) { Message = ex.Message; }
             catch (ArgumentException ex) { Message = ex.Message; }
             catch (Exception) { Message = "No se pudo completar la operación. Tus obras siguen guardadas en este equipo."; }

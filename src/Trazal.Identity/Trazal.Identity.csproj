@@ -13,6 +13,7 @@
     <Compile Include="Application\Ports.cs"/>
     <Compile Include="Application\AccountSession.cs"/>
     <Compile Include="Adapters\Firebase\FirebaseIdentityProvider.cs"/>
+    <Compile Include="Adapters\Google\GoogleDesktopAuthorization.cs"/>
     <Compile Include="Adapters\Windows\ProtectedSessionStore.cs"/>
     <Compile Include="Adapters\Files\IdentityConfiguration.cs"/>
   </ItemGroup>

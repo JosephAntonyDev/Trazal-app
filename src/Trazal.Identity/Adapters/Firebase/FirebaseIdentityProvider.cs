@@ -12,7 +12,7 @@ using Trazal.Identity.Domain;
 
 namespace Trazal.Identity.Adapters.Firebase
 {
-    public sealed class FirebaseIdentityProvider : IIdentityProvider, IDisposable
+    public sealed class FirebaseIdentityProvider : IIdentityProvider, IGoogleIdentityProvider, IDisposable
     {
         private readonly string apiKey;
         private readonly HttpClient client;
@@ -27,6 +27,17 @@ namespace Trazal.Identity.Adapters.Firebase
             => PasswordRequest("signInWithPassword", email, password, cancellation);
         public Task<IdentityTokens> RegisterAsync(string email, string password, CancellationToken cancellation)
             => PasswordRequest("signUp", email, password, cancellation);
+
+        public async Task<IdentityTokens> SignInGoogleAsync(string googleIdToken, CancellationToken cancellation)
+        {
+            if (string.IsNullOrWhiteSpace(googleIdToken)) throw new IdentityException("invalid_response", "Google no devolvió una credencial válida.");
+            var result = await Post<TokenResponse>(AccountUrl("signInWithIdp"), Json(new Dictionary<string, object>
+            {
+                { "postBody", "id_token=" + Uri.EscapeDataString(googleIdToken) + "&providerId=google.com" },
+                { "requestUri", "http://localhost" }, { "returnSecureToken", true }
+            }), cancellation).ConfigureAwait(false);
+            return await Complete(result.IdToken, result.RefreshToken, result.ExpiresIn, result.LocalId, cancellation).ConfigureAwait(false);
+        }
 
         private async Task<IdentityTokens> PasswordRequest(string action, string email, string password, CancellationToken cancellation)
         {
@@ -125,6 +136,10 @@ namespace Trazal.Identity.Adapters.Firebase
             var code = raw.Split(' ', ':')[0];
             switch (code)
             {
+                case "FEDERATED_USER_ID_ALREADY_LINKED": case "NEED_CONFIRMATION": case "ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL":
+                    return new IdentityException("account_link_required", "Ese correo ya tiene otro método de acceso. Inicia sesión con el método original; la vinculación de cuentas requiere revisión.");
+                case "INVALID_IDP_RESPONSE": case "INVALID_OAUTH_CLIENT_ID":
+                    return new IdentityException("google_configuration", "Revisa el cliente OAuth de escritorio y el proveedor Google en el mismo proyecto Firebase.");
                 case "EMAIL_NOT_FOUND": case "INVALID_PASSWORD": case "INVALID_LOGIN_CREDENTIALS":
                     return new IdentityException("invalid_credentials", "Revisa tu correo y contraseña o utiliza la recuperación de acceso.");
                 case "EMAIL_EXISTS": return new IdentityException("registration_failed", "No se pudo crear la cuenta con ese correo. Prueba iniciar sesión o recuperar tu contraseña.");
