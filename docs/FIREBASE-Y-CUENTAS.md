@@ -1,6 +1,6 @@
-# Firebase y cuentas · escritorio 0.6.3
+# Firebase y cuentas · escritorio 0.6.4
 
-Actualizado el 15/11/2026. Firebase `trazal-773ba` ya existe y tiene Correo/contraseña y Google habilitados. El Worker está publicado en `https://trazal-api.trazaldev.workers.dev`; el flujo autenticado real sigue pendiente. Consulta [la guía del equipo](CONEXION-Y-CONTINUIDAD.md).
+Actualizado el 16/11/2026. Firebase `trazal-773ba` ya existe y tiene Correo/contraseña y Google habilitados. El Worker está publicado en `https://trazal-api.trazaldev.workers.dev`; el flujo autenticado real sigue pendiente. Consulta [la guía del equipo](CONEXION-Y-CONTINUIDAD.md).
 
 ## Preparar Firebase en una instalación nueva
 
@@ -87,7 +87,7 @@ Fuentes oficiales: [configuración de Firebase](https://firebase.google.com/docs
 
 ## Configurar Google para escritorio
 
-El proveedor Google ya está habilitado en Firebase. El JSON recibido anteriormente pertenecía a `trazal-773ba-514820`, diferente de `trazal-773ba`; no se aplicó. Sigue pendiente obtener/configurar el cliente Desktop correcto y probarlo. Además hace falta el cliente OAuth nativo; la configuración de la app Web que compartiste no contiene estos campos.
+El proveedor Google ya está habilitado en Firebase. El JSON recibido anteriormente pertenecía a `trazal-773ba-514820`, diferente de `trazal-773ba`; no se aplicó. El 16/11 se recibió e importó el cliente Desktop correcto del proyecto `trazal-773ba`. Solo queda probar el acceso real; no hay que volver a generarlo. Además hace falta el cliente OAuth nativo; la configuración de la app Web que compartiste no contiene estos campos.
 
 1. Abre [Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients?project=trazal-773ba). Confirma el proyecto **trazal-773ba** arriba.
 2. Si pide configurar la plataforma, usa nombre **Trazal**, correo de soporte y contacto del equipo. En **Audience / Público**, elige externo si no es una app exclusiva de tu organización. Para el piloto conserva modo de pruebas y añade los correos del equipo como usuarios de prueba cuando corresponda.
@@ -117,3 +117,9 @@ El adaptador mapea `providerUserInfo` de `accounts:lookup`; el caso de uso no co
 ### Aclaración del JSON de Google
 
 El nombre visible puede ser igual en dos proyectos. El cliente mostrado el 15/11 pertenece, según la URL y el JSON recibido, a `trazal-773ba-514820`. Firebase usa `trazal-773ba`. Volver a descargar el mismo cliente del proyecto diferente no corrige esa diferencia. Selecciona el ID correcto en Google Cloud, crea allí un cliente de escritorio y descarga su JSON. No hay que rehacer Firebase, rotar la API key ni generar una cuenta de servicio. Importa el JSON con `configure-auth.ps1 -OAuthJson <ruta>` y recompila el paquete local. Nunca subir el JSON real.
+
+## Estado actual del cliente Google (16/11/2026)
+
+Resuelto el proyecto equivocado: el usuario administraba Firebase desde otra cuenta de Google. El nuevo archivo `client_secret_648308444976-b6mbfvqiqm5au5lbsojhu3eguadomb2n.apps.googleusercontent.com.json` se validó como cliente `installed` del proyecto `trazal-773ba` y se importó a `authsettings.json` local. El ID público del cliente comienza con el número de proyecto Firebase `648308444976`. No se copió el JSON a Git ni se documentó su secreto.
+
+Los pasos de creación anteriores son para instalaciones/configuraciones nuevas; **Joseph ya los completó**. Abrir el paquete 0.6.4, entrar a Mi cuenta y pulsar Continuar con Google. Completar el navegador personalmente; después comprobar la cuenta y la conexión. La configuración local por sí sola no acredita un login real ni una sesión válida del backend. Si se comparte el paquete se comparte también la configuración del cliente nativo, como requiere ese flujo; no incluir sesiones DPAPI ni bases de usuarios.

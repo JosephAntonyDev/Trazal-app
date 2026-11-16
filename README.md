@@ -6,7 +6,7 @@ Es una vista previa funcional; **no tiene todavía todas las funciones del mocku
 
 ## Estado del equipo y conexión (15/11/2026)
 
-El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.3 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
+El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.4 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
 
 - [Guía de incorporación y conexión](docs/CONEXION-Y-CONTINUIDAD.md).
 - [Firebase, Google y separación de cuentas](docs/FIREBASE-Y-CUENTAS.md).
@@ -18,7 +18,7 @@ En **Mi cuenta** están inicio de sesión, registro, recuperación y Google. Con
 
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.6.3-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.3-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.6.4-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.4-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 
@@ -117,7 +117,7 @@ No se suben perfiles, preferencias ni archivos adjuntos. El piloto sincroniza do
 
 **Mi cuenta** incorpora inicio de sesión, registro, recuperación, envío de verificación, comprobación del correo y cierre de sesión. El módulo `Trazal.Identity` separa dominio, casos de uso, puertos y adaptadores; la vista WPF y su composición viven en `Modules/Identity`. El resto del escritorio mantiene sus capas anteriores, pendiente de migración modular gradual.
 
-Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. Desde la versión 0.6.1 se incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; el paquete local 0.6.3 ya incluye su origen. Los clones nuevos requieren configuración local; falta validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
+Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. Desde la versión 0.6.1 se incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; el paquete local 0.6.4 ya incluye su origen. Los clones nuevos requieren configuración local; falta validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
 
 ## Conexión al piloto (0.6.2)
 
@@ -134,3 +134,10 @@ Cada proyecto/UID abre un SQLite independiente, conservando el espacio local ori
 5. Generar instalador, actualizaciones y licenciamiento; medir grandes catálogos antes de producción.
 
 Los archivos del cliente quedan fuera del repositorio. Este código se mantiene en un repositorio local independiente; no se publica automáticamente en el repo público del mockup. Dependencias y términos: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+## Ventanas adaptables y Google configurado (0.6.4, 16/11/2026)
+
+- La ventana inicial se limita al área de trabajo de Windows; mínimo nominal 680 × 440 unidades WPF. A menos de 1050 de ancho aparece **Menú** con obras, perfil, cuenta, sincronización y respaldos. La barra lateral oculta deja de recibir foco.
+- Filtros y tarjetas se reorganizan por ancho disponible. En ventanas bajas, las pantallas de tablas conservan una altura útil y se recorren verticalmente; las tablas amplias mantienen su desplazamiento horizontal y anchos mínimos legibles. Las modales se limitan al espacio disponible y conservan sus acciones.
+- Se revisaron renders de inicio, perfil, cuenta, presupuesto, gastos, programa y creación a 680, 911, 1024, 1366 y 1920 unidades de ancho, en ambos temas. 911 unidades sirve como aproximación del espacio de una pantalla 1366 con escala 150 %; no es una prueba de cambio de DPI real del sistema ni de Windows 7.
+- Se recibió e importó el cliente OAuth Desktop del proyecto correcto **trazal-773ba** mediante `configure-auth.ps1`. El paquete local incluye la configuración ignorada por Git. El JSON y el secreto no se versionan; clones nuevos necesitan configurar su archivo local. Falta completar el login real con el usuario y comprobar sincronización autenticada.

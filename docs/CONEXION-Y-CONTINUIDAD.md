@@ -1,6 +1,6 @@
 # Conectar el escritorio y continuar el proyecto
 
-Actualizado el 15/11/2026. Escritorio 0.6.3, API publicada 0.6.0. La [guía central del equipo](https://github.com/JosephAntonyDev/Trazal-API-TS/blob/main/docs/ESTADO-Y-CONTINUIDAD.md) documenta Neon, Hyperdrive, Firebase, GitHub Builds, identificadores, incidencias y evidencia del despliegue.
+Actualizado el 16/11/2026. Escritorio 0.6.4, API publicada 0.6.0. La [guía central del equipo](https://github.com/JosephAntonyDev/Trazal-API-TS/blob/main/docs/ESTADO-Y-CONTINUIDAD.md) documenta Neon, Hyperdrive, Firebase, GitHub Builds, identificadores, incidencias y evidencia del despliegue.
 
 ## Preparar el equipo de desarrollo
 
@@ -12,7 +12,7 @@ Actualizado el 15/11/2026. Escritorio 0.6.3, API publicada 0.6.0. La [guía cent
    .\build.ps1 -Test -Package
    ```
 
-4. Abrir `artifacts/Trazal-0.6.3-preview/Trazal.exe`. Compartir el ZIP completo, no únicamente el EXE. Este paquete es portable, no un instalador ni una distribución de .NET Framework.
+4. Abrir `artifacts/Trazal-0.6.4-preview/Trazal.exe`. Compartir el ZIP completo, no únicamente el EXE. Este paquete es portable, no un instalador ni una distribución de .NET Framework.
 
 ## Configurar una instalación
 
@@ -61,7 +61,7 @@ Iniciar sesión abre un SQLite propio de proyecto/UID. Las obras del espacio loc
 
 Google y Correo/contraseña ya están habilitados en Firebase. El flujo Google está implementado en el escritorio con navegador del sistema, PKCE y retorno temporal a `127.0.0.1`; falta validación real.
 
-El JSON entregado anteriormente pertenecía a `trazal-773ba-514820`, diferente del proyecto de autenticación `trazal-773ba`, y no se aplicó. Crear un cliente OAuth de tipo **Desktop app** en el proyecto correcto y completar `googleDesktopClientId` / `googleDesktopClientSecret` localmente. Seguir [Firebase y cuentas](FIREBASE-Y-CUENTAS.md#configurar-google-para-escritorio). No hace falta esperar Google para probar correo/contraseña.
+El JSON entregado anteriormente pertenecía a `trazal-773ba-514820`, diferente del proyecto de autenticación `trazal-773ba`, y no se aplicó. Resuelto el 16/11: se recibió el cliente Desktop de `trazal-773ba` y se completó la configuración local mediante el importador. Falta probar el acceso real. Seguir [Firebase y cuentas](FIREBASE-Y-CUENTAS.md#configurar-google-para-escritorio). No hace falta esperar Google para probar correo/contraseña.
 
 No guardar JSON OAuth, tokens ni contraseñas en el repo. Los ID tokens permanecen en memoria; recordar sesión es opcional y protege el refresh token con DPAPI del usuario de Windows. El perfil local no cambia el correo de acceso.
 
@@ -85,10 +85,14 @@ Actualizar esta guía con fecha y evidencia cuando se cumplan esas pruebas. No r
 
 104 pruebas de escritorio aprobadas, incluyendo el control de UID remoto antes de subir datos, comprobación sin transferencia, estados de sesión y OAuth/PKCE mediante servidor local de prueba. Pruebas adicionales de `configure-auth.ps1` verifican rechazo de otro proyecto/tipo de cliente, HTTPS y preservación del archivo ante errores. La primera ejecución dentro del sandbox no pudo abrir el socket loopback; al ejecutar las mismas pruebas con acceso local permitido pasaron completas.
 
-Esto no certifica Google real, correo real ni escritura/descarga en Neon. Sigue pendiente recibir/configurar el JSON OAuth del proyecto correcto y completar la prueba con una cuenta del equipo. No se crearon usuarios reales ni se enviaron obras al servidor durante estas pruebas.
+Esto no certifica Google real, correo real ni escritura/descarga en Neon. En aquella revisión faltaba el JSON; se recibió e importó el 16/11. Permanece pendiente completar la prueba con una cuenta del equipo. No se crearon usuarios reales ni se enviaron obras al servidor durante estas pruebas.
 
 ## Cuenta y seguridad: 0.6.3 (15/11/2026)
 
 Mi cuenta conserva login, registro, Google y recuperación, y añade el envío de enlace de cambio para una sesión con proveedor de contraseña. Se comprueba identidad en línea antes del envío; Google solo se administra en Google. 109 pruebas de escritorio aprobadas, incluyendo rechazo de identidad distinta/revocada, proveedor sin contraseña, sesión recordada y mapeo de proveedores Firebase. Vistas de acceso y seguridad revisadas en claro y oscuro sin conexiones reales.
 
 El mockup ahora incluye un recorrido de cuenta **solo visual**, autorizado posteriormente por Joseph, con licencia y escenarios de suscripción de ejemplo. No usa Firebase ni persiste credenciales; no confundirlo con implementación comercial. Sigue pendiente la prueba real de autenticación/correos y Google con el JSON correcto. Ver [Firebase y cuentas](FIREBASE-Y-CUENTAS.md).
+
+## Actualización 0.6.4 (16/11/2026)
+
+Cliente Google correcto configurado localmente; no volver a pedir su creación a Joseph. Git no contiene secretos ni el archivo de configuración. El mockup sigue sin autenticación real. Escritorio mejora navegación compacta, área inicial de ventana, reorganización de filtros/tarjetas, desplazamiento de tablas y modales. Evidencia visual: siete pantallas a cinco anchos (680–1920 unidades WPF), comprobando también acceso al pie del presupuesto en ventana baja. La prueba de escalado real y Windows 7 continúa pendiente. Ver README y Firebase y cuentas para abrir el nuevo paquete y probar Google.

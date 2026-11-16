@@ -4,6 +4,21 @@ using System.Windows.Controls;
 
 namespace Trazal.Desktop
 {
+    // Data grids need a bounded viewport; a short window scrolls the page instead of clipping its actions.
+    public sealed class PageMinimumHeightConverter : System.Windows.Data.IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            var page = values.Length > 0 ? values[0] : null;
+            var narrow = values.Length < 2 || !(values[1] is double width) || width < 850;
+            if (page is WorkViewModel) return narrow ? 780d : 560d;
+            return page is ProgramViewModel || page is ExpensesViewModel || page is SyncViewModel || page is ImportViewModel
+                ? (narrow ? 640d : 480d) : 0d;
+        }
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
     // Equal-width cards/fields, with no fixed empty gutter at intermediate window sizes.
     public sealed class ResponsivePanel : Panel
     {

@@ -216,6 +216,7 @@
     <Setter Property="SelectionMode" Value="Single" />
   </Style>
   <Style TargetType="DataGridColumnHeader">
+    <Setter Property="ContentTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" TextWrapping="NoWrap"/></DataTemplate></Setter.Value></Setter>
     <Setter Property="Background" Value="{DynamicResource Tint}" />
     <Setter Property="Foreground" Value="{DynamicResource Muted}" />
     <Setter Property="Padding" Value="14,8" />
