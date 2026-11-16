@@ -158,7 +158,7 @@ namespace Trazal.Desktop
         public Profile Profile { get; set; }
         public Editor Editor { get; set; }
     }
-    public sealed partial class ShellViewModel : Observable
+    public sealed partial class ShellViewModel : Observable, IDisposable
     {
         private readonly LocalStore store;
         private Profile profile;
@@ -176,14 +176,16 @@ namespace Trazal.Desktop
             get => page;
             private set
             {
-                if (!Set(ref page, value)) return;
+                if (ReferenceEquals(page, value)) return;
+                (page as IDisposable)?.Dispose();
+                Set(ref page, value);
                 Notify(nameof(IsWorksSection));
                 Notify(nameof(IsProfileSection));
                 Notify(nameof(IsSyncSection));
                 Notify(nameof(IsAccountSection));
             }
         }
-        public bool IsWorksSection => Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel || Page is PerformanceViewModel;
+        public bool IsWorksSection => Page is LocalWorkCopyViewModel || Page is HomeViewModel || Page is WorkViewModel || Page is ExpensesViewModel || Page is ImportViewModel || Page is ProgramViewModel || Page is PerformanceViewModel;
         public bool IsProfileSection => Page is ProfileViewModel;
         public Editor Dialog { get => dialog; private set { Set(ref dialog, value); Notify(nameof(DialogOpen)); } }
         public bool DialogOpen => Dialog != null;

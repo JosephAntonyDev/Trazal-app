@@ -51,6 +51,7 @@
      <StackPanel Visibility="{Binding SignedIn,Converter={StaticResource BoolVisibility}}">
       <TextBlock Text="{Binding AccountEmail}" FontSize="23" FontWeight="SemiBold" TextWrapping="Wrap"/>
       <TextBlock Text="{Binding SessionStatus}" Foreground="{DynamicResource Muted}" Margin="0,12,0,24"/>
+      <Button Content="Copiar obras de mi espacio local" Command="{Binding DataContext.CopyLocalWorks,RelativeSource={RelativeSource AncestorType=Window}}" HorizontalAlignment="Left" Margin="0,0,0,16"/>
       <TextBlock Text="Este espacio pertenece a tu cuenta. Al cerrar sesión volverás al espacio local original; las obras de ambos espacios se conservan por separado." Margin="0,0,0,24"/>
       <WrapPanel><Button Content="Enviar verificación" Command="{Binding Verify}" Margin="0,0,12,12"/><Button Content="Ya confirmé mi correo / comprobar sesión" Command="{Binding RefreshIdentity}" Style="{StaticResource Primary}" Margin="0,0,12,12"/><Button Content="Cerrar sesión" Command="{Binding SignOut}" Margin="0,0,0,12"/></WrapPanel>
       <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,22,0,0">

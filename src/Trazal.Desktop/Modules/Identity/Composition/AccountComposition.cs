@@ -42,6 +42,7 @@ namespace Trazal.Desktop.Modules.Identity.Composition
             var shell = new ShellViewModel(store);
             shell.ConfigureAccount(session, config.IsConfigured, configurationMessage, () => Open(true), google);
             shell.ConfigureSyncAvailability(config.ApiOrigin);
+            shell.ConfigureLocalWorkCopy(Path.Combine(root, "trazal.db"));
             cloud?.Dispose(); cloud = null;
             if (identity != null && identity.EmailVerified && !session.NeedsOnlineCheck && !string.IsNullOrWhiteSpace(config.ApiOrigin))
             {

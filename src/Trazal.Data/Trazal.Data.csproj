@@ -23,6 +23,7 @@
     <Compile Include="ProgramStore.cs" />
     <Compile Include="ExcelCatalog.cs" />
     <Compile Include="Restore.cs" />
+    <Compile Include="LocalWorkCopy.cs" />
     <Compile Include="WorkReport.cs" />
     <Compile Include="ExcelReport.cs" />
     <Reference Include="System.Xml" />

@@ -64,6 +64,7 @@
     <Compile Include="PdfReport.cs" />
     <Compile Include="ReportCommands.cs" />
     <Compile Include="SyncViewModel.cs" />
+    <Compile Include="LocalWorkCopyViewModel.cs" />
     <Compile Include="Theme.cs" />
     <Compile Include="ResponsivePanel.cs" />
     <Compile Include="AssemblyInfo.cs" />

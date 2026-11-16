@@ -20,7 +20,9 @@ namespace Trazal.Desktop
             Width = System.Math.Min(Width, area.Width);
             Height = System.Math.Min(Height, area.Height);
             SizeChanged += (_, __) => UpdateAdaptiveLayout(ActualWidth);
-            DataContextChanged += (_, e) => { if (e.OldValue is ShellViewModel old) old.PropertyChanged -= OnChanged; if (e.NewValue is ShellViewModel next) next.PropertyChanged += OnChanged; };
+            DataContextChanged += (_, e) => { if (e.OldValue is ShellViewModel old) { old.PropertyChanged -= OnChanged; old.Dispose(); } if (e.NewValue is ShellViewModel next) next.PropertyChanged += OnChanged; };
+            Closed += (_, __) => (DataContext as ShellViewModel)?.Dispose();
+            Closing += (_, e) => { if (DataContext is ShellViewModel shell && shell.IsBusy) e.Cancel = true; };
             PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape && DataContext is ShellViewModel s && s.Dialog != null) { s.Dialog.Cancel.Execute(null); e.Handled = true; } };
         }
         private void UpdateAdaptiveLayout(double width)
