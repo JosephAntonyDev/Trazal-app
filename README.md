@@ -6,15 +6,19 @@ Es una vista previa funcional; **no tiene todavía todas las funciones del mocku
 
 ## Estado del equipo y conexión (15/11/2026)
 
-El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.2 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
+El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.3 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
 
 - [Guía de incorporación y conexión](docs/CONEXION-Y-CONTINUIDAD.md).
 - [Firebase, Google y separación de cuentas](docs/FIREBASE-Y-CUENTAS.md).
 - [Estado completo de infraestructura y procedimiento](https://github.com/JosephAntonyDev/Trazal-API-TS/blob/main/docs/ESTADO-Y-CONTINUIDAD.md).
 
+## Cuenta y seguridad (0.6.3)
+
+En **Mi cuenta** están inicio de sesión, registro, recuperación y Google. Con una sesión comprobada de correo/contraseña se puede solicitar el enlace para cambiarla en el navegador. Las cuentas solo Google muestran dónde administrar su acceso. Los proveedores se vuelven a verificar antes del envío. 109 pruebas aprobadas con servicios simulados; correos y OAuth reales siguen pendientes. La cuenta no activa una licencia comercial: esa parte sigue por implementar.
+
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.6.2-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.2-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.6.3-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.3-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 
@@ -113,7 +117,7 @@ No se suben perfiles, preferencias ni archivos adjuntos. El piloto sincroniza do
 
 **Mi cuenta** incorpora inicio de sesión, registro, recuperación, envío de verificación, comprobación del correo y cierre de sesión. El módulo `Trazal.Identity` separa dominio, casos de uso, puertos y adaptadores; la vista WPF y su composición viven en `Modules/Identity`. El resto del escritorio mantiene sus capas anteriores, pendiente de migración modular gradual.
 
-Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. Desde la versión 0.6.1 se incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; el paquete local 0.6.2 ya incluye su origen. Los clones nuevos requieren configuración local; falta validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
+Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. Desde la versión 0.6.1 se incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; el paquete local 0.6.3 ya incluye su origen. Los clones nuevos requieren configuración local; falta validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
 
 ## Conexión al piloto (0.6.2)
 

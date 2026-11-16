@@ -8,6 +8,8 @@ namespace Trazal.Identity.Domain
         public string Uid { get; set; }
         public string Email { get; set; }
         public bool EmailVerified { get; set; }
+        public bool HasPasswordProvider { get; set; }
+        public bool HasGoogleProvider { get; set; }
     }
 
     public sealed class IdentityTokens

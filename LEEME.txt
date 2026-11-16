@@ -1,4 +1,4 @@
-TRAZAL — VISTA PREVIA 0.6.2
+TRAZAL — VISTA PREVIA 0.6.3
 
 Extrae la carpeta completa y abre Trazal.exe. Conserva las DLL y las carpetas x86/x64 junto al ejecutable.
 Requiere .NET Framework 4.8. Destino previsto: Windows 7 SP1 o posterior; todavía pendiente de validación en Windows 7 real.
@@ -59,3 +59,5 @@ La cuenta que devuelve el servidor debe coincidir con el espacio local antes de 
 Los errores de conexión conservan las obras y permiten reintentar.
 Consulta CONEXION-Y-CONTINUIDAD.md para el flujo de prueba real.
 Google requiere un cliente OAuth Desktop del proyecto Firebase correcto; habilitar el proveedor no basta.
+
+0.6.3: Mi cuenta incluye acceso y seguridad. Solicita un enlace por correo para cambiar la contraseña; Google se administra en Google. Requiere conexión para estas acciones. La licencia comercial sigue pendiente.

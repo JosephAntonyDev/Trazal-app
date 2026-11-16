@@ -120,6 +120,22 @@ namespace Trazal.Identity.Application
             return provider.SendPasswordResetAsync(email.Trim(), cancellation);
         }
 
+        public async Task SendPasswordChangeLinkAsync(CancellationToken cancellation)
+        {
+            await gate.WaitAsync(cancellation).ConfigureAwait(false);
+            try
+            {
+                // Recheck the current identity and linked providers before choosing the destination.
+                await RenewIfNeeded(true, cancellation).ConfigureAwait(false);
+                if (!tokens.Identity.HasPasswordProvider)
+                    throw new IdentityException("external_password", "Esta cuenta no tiene una contraseña de Trazal. Administra tu acceso con el proveedor de tu cuenta.");
+                if (!Credentials.IsEmail(tokens.Identity.Email))
+                    throw new IdentityException("invalid_response", "No se pudo comprobar el correo de esta cuenta.");
+                await provider.SendPasswordResetAsync(tokens.Identity.Email, cancellation).ConfigureAwait(false);
+            }
+            finally { gate.Release(); }
+        }
+
         public async Task SignOutAsync(CancellationToken cancellation)
         {
             await gate.WaitAsync(cancellation).ConfigureAwait(false);

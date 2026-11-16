@@ -1,10 +1,10 @@
-# Firebase y cuentas · escritorio 0.6.2
+# Firebase y cuentas · escritorio 0.6.3
 
 Actualizado el 15/11/2026. Firebase `trazal-773ba` ya existe y tiene Correo/contraseña y Google habilitados. El Worker está publicado en `https://trazal-api.trazaldev.workers.dev`; el flujo autenticado real sigue pendiente. Consulta [la guía del equipo](CONEXION-Y-CONTINUIDAD.md).
 
 ## Preparar Firebase en una instalación nueva
 
-1. Abre [Firebase Console](https://console.firebase.google.com/) y crea un proyecto **Trazal**, o elige el proyecto que ya tengas. Analytics no es necesario para este flujo.
+1. Abre [Firebase Console](https://console.firebase.google.com/) y selecciona el proyecto existente **trazal-773ba**. Para este equipo no crees otro proyecto ni regeneres la configuración Web. Los pasos siguientes sirven para comprobar la configuración o preparar un clon nuevo del escritorio.
 2. En **Authentication → Comenzar → Método de acceso**, habilita **Correo electrónico/contraseña**. El acceso sin contraseña mediante enlace no se utiliza en esta versión.
 3. En **Configuración del proyecto → General → Tus apps**, registra una app **Web (`</>`)** llamada **Trazal Desktop**. No es necesario configurar Hosting. Usamos su configuración con la API REST desde C#; no cambia la tecnología del escritorio.
 4. En la configuración de esa app, copia el bloque `firebaseConfig`, o únicamente sus campos `apiKey` y `projectId`. `authDomain` y `appId` pueden conservarse para otras integraciones, pero este cliente REST no los necesita.
@@ -103,3 +103,17 @@ Si Firebase rechaza el ID OAuth, verifica que lo creaste en el mismo proyecto. L
 Revisar en el Windows 7 real que el navegador instalado todavía pueda abrir el acceso de Google y que TLS/certificados funcionen. El flujo no utiliza WebView2 ni el navegador integrado de Internet Explorer; no se garantiza el soporte de Google a navegadores antiguos.
 
 Referencia: [OAuth para escritorio](https://developers.google.com/identity/protocols/oauth2/native-app).
+
+## Cambiar contraseña desde Mi cuenta (0.6.3)
+
+Con la sesión comprobada, **Mi cuenta → Acceso y seguridad → Enviar enlace para cambiar contraseña** solicita un correo de Firebase al email confirmado por el proveedor para esa identidad. El usuario abre el enlace y elige su nueva contraseña en el navegador; Trazal no recibe el enlace ni la nueva contraseña. La confirmación en escritorio indica que se solicitó el envío, no que la contraseña ya cambió. Si Firebase invalida la sesión después, se pedirá iniciar sesión nuevamente y se conservará SQLite.
+
+`AccountSession` renueva y comprueba el UID y los proveedores vinculados antes de solicitar el correo. Cuentas solo Google muestran que su contraseña se gestiona en Google. Cuentas con ambos proveedores pueden cambiar su contraseña de correo. Las sesiones restauradas sin conexión deben comprobarse antes de mostrar esta acción. Recuperación sin sesión sigue en **Olvidé mi contraseña**, sin revelar si existe el email.
+
+El adaptador mapea `providerUserInfo` de `accounts:lookup`; el caso de uso no conoce Firebase ni WPF. No hay cambios de esquema SQLite ni endpoints nuevos del Worker. Referencia: [Firebase REST: recuperación y consulta de cuenta](https://firebase.google.com/docs/reference/rest/auth).
+
+**Cuenta no equivale a licencia:** el login identifica al usuario y separa sus espacios; activación, validación offline de licencia y cobro de la nube aún no están implementados. No bloquear la operación local con una pantalla de login obligatoria antes de definir esa política.
+
+### Aclaración del JSON de Google
+
+El nombre visible puede ser igual en dos proyectos. El cliente mostrado el 15/11 pertenece, según la URL y el JSON recibido, a `trazal-773ba-514820`. Firebase usa `trazal-773ba`. Volver a descargar el mismo cliente del proyecto diferente no corrige esa diferencia. Selecciona el ID correcto en Google Cloud, crea allí un cliente de escritorio y descarga su JSON. No hay que rehacer Firebase, rotar la API key ni generar una cuenta de servicio. Importa el JSON con `configure-auth.ps1 -OAuthJson <ruta>` y recompila el paquete local. Nunca subir el JSON real.

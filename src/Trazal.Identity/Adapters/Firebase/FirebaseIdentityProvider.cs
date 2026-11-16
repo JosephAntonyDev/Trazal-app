@@ -70,7 +70,12 @@ namespace Trazal.Identity.Adapters.Firebase
             if (result.Users == null || result.Users.Length != 1 || string.IsNullOrWhiteSpace(result.Users[0].LocalId))
                 throw new IdentityException("invalid_response", "No se pudo comprobar tu cuenta.");
             var user = result.Users[0];
-            return new AccountIdentity { Uid = user.LocalId, Email = user.Email, EmailVerified = user.EmailVerified };
+            return new AccountIdentity
+            {
+                Uid = user.LocalId, Email = user.Email, EmailVerified = user.EmailVerified,
+                HasPasswordProvider = Array.Exists(user.Providers ?? new ProviderResponse[0], p => p?.Id == "password"),
+                HasGoogleProvider = Array.Exists(user.Providers ?? new ProviderResponse[0], p => p?.Id == "google.com")
+            };
         }
 
         public async Task SendVerificationAsync(string idToken, CancellationToken cancellation)
@@ -177,7 +182,9 @@ namespace Trazal.Identity.Adapters.Firebase
             [DataMember(Name = "localId")] public string LocalId { get; set; }
             [DataMember(Name = "email")] public string Email { get; set; }
             [DataMember(Name = "emailVerified")] public bool EmailVerified { get; set; }
+            [DataMember(Name = "providerUserInfo")] public ProviderResponse[] Providers { get; set; }
         }
+        [DataContract] private sealed class ProviderResponse { [DataMember(Name = "providerId")] public string Id { get; set; } }
         [DataContract] private sealed class EmptyResponse { }
         [DataContract] private sealed class ErrorResponse { [DataMember(Name = "error")] public ErrorDetail Error { get; set; } }
         [DataContract] private sealed class ErrorDetail { [DataMember(Name = "message")] public string Message { get; set; } }

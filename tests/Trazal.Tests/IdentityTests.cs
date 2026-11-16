@@ -29,12 +29,13 @@ namespace Trazal.Tests
         private sealed class FakeIdentity : IIdentityProvider, IGoogleIdentityProvider
         {
             public string Uid = "account-one";
-            public bool Verified = true, RejectRefresh;
-            public int RefreshCalls, LoginCalls;
+            public bool Verified = true, PasswordProvider = true, RejectRefresh;
+            public int RefreshCalls, LoginCalls, ResetCalls;
+            public string ResetEmail;
             public readonly IdentityClock Clock = new IdentityClock();
             private IdentityTokens Tokens() => new IdentityTokens
             {
-                Identity = new AccountIdentity { Uid = Uid, Email = "test@example.com", EmailVerified = Verified },
+                Identity = new AccountIdentity { Uid = Uid, Email = "test@example.com", EmailVerified = Verified, HasPasswordProvider = PasswordProvider },
                 IdToken = "id-token", RefreshToken = "refresh-token", ExpiresAtUtc = Clock.UtcNow.AddHours(1)
             };
             public Task<IdentityTokens> SignInAsync(string email, string password, CancellationToken cancellation) { LoginCalls++; return Task.FromResult(Tokens()); }
@@ -48,7 +49,7 @@ namespace Trazal.Tests
             }
             public Task<AccountIdentity> GetIdentityAsync(string token, CancellationToken cancellation) => Task.FromResult(Tokens().Identity);
             public Task SendVerificationAsync(string token, CancellationToken cancellation) => Task.CompletedTask;
-            public Task SendPasswordResetAsync(string email, CancellationToken cancellation) => Task.CompletedTask;
+            public Task SendPasswordResetAsync(string email, CancellationToken cancellation) { ResetCalls++; ResetEmail = email; return Task.CompletedTask; }
         }
         private static void Login(AccountSession session, bool remember = false) => session.AuthenticateAsync("test@example.com", "test-password", false, remember, CancellationToken.None).GetAwaiter().GetResult();
         private static void IdentityReject(string code, Func<Task> action)
@@ -74,6 +75,57 @@ namespace Trazal.Tests
         private static void IdentityTests(string root)
         {
             GoogleIdentityTests();
+            Check("Cambio por correo usa identidad comprobada y conserva la sesión local", () =>
+            {
+                var provider = new FakeIdentity(); var storage = new MemorySession(); var session = new AccountSession(provider, storage, provider.Clock);
+                Login(session, true);
+                session.SendPasswordChangeLinkAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Equal(1, provider.RefreshCalls); Equal(1, provider.ResetCalls); Equal("test@example.com", provider.ResetEmail);
+                Equal("account-one", session.Current.Uid); Equal("account-one", storage.Saved.Uid);
+            });
+            Check("Cambio por correo rechaza sesión ausente, revocada o de otro usuario", () =>
+            {
+                var provider = new FakeIdentity(); var session = new AccountSession(provider, new MemorySession(), provider.Clock);
+                IdentityReject("sign_in_required", () => session.SendPasswordChangeLinkAsync(CancellationToken.None));
+                Login(session); provider.Uid = "another-account";
+                IdentityReject("identity_mismatch", () => session.SendPasswordChangeLinkAsync(CancellationToken.None));
+                provider.Uid = "account-one"; Login(session); provider.RejectRefresh = true;
+                IdentityReject("session_expired", () => session.SendPasswordChangeLinkAsync(CancellationToken.None));
+                Equal(0, provider.ResetCalls);
+            });
+            Check("Cambio por correo vuelve a comprobar proveedor y no crea contraseña para Google", () =>
+            {
+                var provider = new FakeIdentity(); var session = new AccountSession(provider, new MemorySession(), provider.Clock);
+                Login(session); provider.PasswordProvider = false;
+                IdentityReject("external_password", () => session.SendPasswordChangeLinkAsync(CancellationToken.None));
+                Equal(0, provider.ResetCalls);
+                var vm = new AccountViewModel(session, true, "", () => { }, () => { });
+                Equal(false, vm.ChangePassword.CanExecute(null));
+            });
+            Check("Opciones de seguridad esperan comprobar la sesión recordada", () =>
+            {
+                var provider = new FakeIdentity(); var storage = new MemorySession(); var session = new AccountSession(provider, storage, provider.Clock);
+                Login(session, true); var restored = new AccountSession(provider, storage, provider.Clock); restored.RestoreLocalSession();
+                var vm = new AccountViewModel(restored, true, "", () => { }, () => { });
+                Equal(false, vm.ChangePassword.CanExecute(null));
+                restored.CheckIdentityAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Equal(true, vm.ChangePassword.CanExecute(null));
+            });
+            Check("Firebase distingue proveedores password, Google, ambos y ausencia de datos", () =>
+            {
+                foreach (var pair in new[] { "password", "google.com", "password,google.com", "" })
+                {
+                    var handler = new FirebaseHttp();
+                    var providers = pair == "" ? "" : ",\"providerUserInfo\":[{\"providerId\":\"" + pair.Replace(",", "\"},{\"providerId\":\"") + "\"}]";
+                    handler.Replies.Enqueue("{\"users\":[{\"localId\":\"user-one\",\"email\":\"a@example.com\"" + providers + "}]}");
+                    using (var adapter = new FirebaseIdentityProvider("test-api-key", handler))
+                    {
+                        var identity = adapter.GetIdentityAsync("test-token", CancellationToken.None).GetAwaiter().GetResult();
+                        Equal(pair.Contains("password"), identity.HasPasswordProvider);
+                        Equal(pair.Contains("google.com"), identity.HasGoogleProvider);
+                    }
+                }
+            });
             Check("Login valida antes de contactar al proveedor", () =>
             {
                 var provider = new FakeIdentity(); var session = new AccountSession(provider, new MemorySession(), provider.Clock);

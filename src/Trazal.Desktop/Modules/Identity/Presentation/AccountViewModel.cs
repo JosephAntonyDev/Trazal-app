@@ -26,6 +26,11 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
         public string AccountEmail => session?.Current?.Email ?? "";
         public bool SignedIn => session?.Current != null;
         public bool SignedOut => !SignedIn;
+        public bool PasswordAvailable => SignedIn && session.NeedsOnlineCheck == false && session.Current.HasPasswordProvider;
+        public string PasswordHint => session?.NeedsOnlineCheck == true ? "Comprueba tu sesión para consultar las opciones de seguridad."
+            : PasswordAvailable ? "Recibe un enlace en tu correo para elegir una nueva contraseña en el navegador."
+            : session?.Current?.HasGoogleProvider == true ? "Accedes con Google. Tu contraseña se administra en tu cuenta de Google."
+            : "Esta cuenta no tiene una contraseña de Trazal. Utiliza tu proveedor de acceso.";
         public bool IsRegistration => mode == "register";
         public bool HasPassword => mode != "reset";
         public bool IsWorking => working;
@@ -45,6 +50,7 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
         public ICommand Submit { get; }
         public ICommand SignOut { get; }
         public ICommand Verify { get; }
+        public ICommand ChangePassword { get; }
         public ICommand RefreshIdentity { get; }
         public ICommand Back { get; }
         public ICommand GoogleSignIn { get; }
@@ -60,6 +66,11 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
             Submit = new ActionCommand(async _ => await Run(SubmitAsync), _ => CanSubmit());
             SignOut = new ActionCommand(async _ => await Run(async () => { await session.SignOutAsync(CancellationToken.None); changed(); }), _ => SignedIn && !working);
             Verify = new ActionCommand(async _ => await Run(async () => { await session.SendVerificationAsync(CancellationToken.None); Message = "Enlace enviado. Revisa tu correo y la carpeta de spam."; }), _ => SignedIn && !working);
+            ChangePassword = new ActionCommand(async _ => await Run(async () =>
+            {
+                await session.SendPasswordChangeLinkAsync(CancellationToken.None);
+                Message = "Solicitud enviada. Revisa tu correo y spam; completa el cambio desde el enlace. Después vuelve a iniciar sesión si se solicita. Tus obras locales se conservan.";
+            }), _ => Configured && PasswordAvailable && !working);
             RefreshIdentity = new ActionCommand(async _ => await Run(async () =>
             {
                 await session.CheckIdentityAsync(CancellationToken.None);
@@ -108,7 +119,7 @@ namespace Trazal.Desktop.Modules.Identity.Presentation
             catch (IdentityException ex) { Message = ex.Message; }
             catch (ArgumentException ex) { Message = ex.Message; }
             catch (Exception) { Message = "No se pudo completar la operación. Tus obras siguen guardadas en este equipo."; }
-            finally { working = false; ClearSecretFields(); UpdateWorking(); Notify(nameof(SessionStatus)); }
+            finally { working = false; ClearSecretFields(); UpdateWorking(); Notify(nameof(SessionStatus)); Notify(nameof(PasswordAvailable)); Notify(nameof(PasswordHint)); }
         }
         private void ClearSecretFields() { password = ""; confirmation = ""; ClearPasswords?.Invoke(); RefreshCommands(); }
         private void UpdateWorking() { setWorkspaceBusy?.Invoke(working); Notify(nameof(IsWorking)); Notify(nameof(CanEdit)); Notify(nameof(SubmitLabel)); RefreshCommands(); }
