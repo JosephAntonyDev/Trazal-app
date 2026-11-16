@@ -1,5 +1,7 @@
 # Trazal Desktop
 
+Para trabajar con el equipo: [guía de contribución, comprobaciones y tareas](CONTRIBUTING.md).
+
 Primera base ejecutable del producto, iniciada el 13 de noviembre de 2026 con autorización de Joseph. **C# + WPF + .NET Framework 4.8 + SQLite local.** Conserva la identidad amarilla y los flujos del mockup React, con controles nativos y sin WebView.
 
 Es una vista previa funcional; **no tiene todavía todas las funciones del mockup** ni está aprobada para presupuestos reales.
