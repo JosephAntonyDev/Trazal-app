@@ -1,4 +1,4 @@
-TRAZAL — VISTA PREVIA 0.6.1
+TRAZAL — VISTA PREVIA 0.6.2
 
 Extrae la carpeta completa y abre Trazal.exe. Conserva las DLL y las carpetas x86/x64 junto al ejecutable.
 Requiere .NET Framework 4.8. Destino previsto: Windows 7 SP1 o posterior; todavía pendiente de validación en Windows 7 real.
@@ -42,7 +42,7 @@ No abrir la base actualizada con versiones anteriores de Trazal.
 
 NOVEDADES 0.6.0
 Mi cuenta: inicio de sesión, registro, recuperación, verificación y cierre.
-La configuración de Firebase está pendiente; no hay cuentas ni sesiones simuladas.
+Firebase se configura mediante authsettings.json; no hay cuentas ni sesiones simuladas.
 Recordar sesión es opcional y usa la protección del usuario de Windows.
 Cada cuenta tiene su propio espacio SQLite. El espacio local original se conserva.
 La sesión no se incluye en los respaldos. No se suben obras automáticamente.
@@ -50,3 +50,12 @@ Consulta FIREBASE-Y-CUENTAS.md y authsettings.example.json para configurar el ac
 
 NOVEDADES 0.6.1
 Continuar con Google desde el navegador, con cancelación. Configura el cliente OAuth de escritorio como indica FIREBASE-Y-CUENTAS.md. Pendiente validación con cuentas reales y Windows 7.
+
+NOVEDADES 0.6.2
+El paquete preparado en el equipo de desarrollo apunta al backend publicado.
+En Sincronización puedes comprobar cuenta y base de datos sin enviar obras.
+La pantalla explica si falta iniciar sesión, confirmar correo o comprobar la sesión.
+La cuenta que devuelve el servidor debe coincidir con el espacio local antes de enviar datos.
+Los errores de conexión conservan las obras y permiten reintentar.
+Consulta CONEXION-Y-CONTINUIDAD.md para el flujo de prueba real.
+Google requiere un cliente OAuth Desktop del proyecto Firebase correcto; habilitar el proveedor no basta.

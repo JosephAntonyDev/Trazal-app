@@ -79,14 +79,30 @@ namespace Trazal.Data
     public sealed class SyncEngine
     {
         private readonly LocalStore store;private readonly ISyncRemote remote;private readonly SemaphoreSlim gate=new SemaphoreSlim(1,1);
-        public SyncEngine(LocalStore store,ISyncRemote remote){this.store=store;this.remote=remote;}
+        private readonly string expectedUid;
+        public SyncEngine(LocalStore store,ISyncRemote remote,string expectedUid=null){this.store=store;this.remote=remote;this.expectedUid=expectedUid;}
+        // Checks authenticated database access without uploading works or changing the local workspace.
+        public async Task CheckConnectionAsync(CancellationToken cancellation)
+        {
+            await gate.WaitAsync(cancellation).ConfigureAwait(false);
+            try { await VerifiedUserAsync(cancellation).ConfigureAwait(false); }
+            finally { gate.Release(); }
+        }
+        private async Task<string> VerifiedUserAsync(CancellationToken cancellation)
+        {
+            var uid=await remote.UserAsync(cancellation).ConfigureAwait(false);
+            if(string.IsNullOrWhiteSpace(uid)||uid.Length>128||
+                (expectedUid!=null&&!string.Equals(expectedUid,uid,StringComparison.Ordinal)))
+                throw new CloudException(401,"identity_mismatch","La cuenta del servidor no coincide con este espacio. Vuelve a iniciar sesión; no se enviaron obras.");
+            return uid;
+        }
         private static void CheckRevision(string revision){long n;if(!long.TryParse(revision,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out n)||n<0)throw new IOException("Revisión remota inválida.");}
         public async Task<SyncResult> RunAsync(CancellationToken cancellation)
         {
             await gate.WaitAsync(cancellation).ConfigureAwait(false);
             try
             {
-                var uid=await remote.UserAsync(cancellation).ConfigureAwait(false);store.BindSyncAccount(uid,remote.Origin);var result=new SyncResult();
+                var uid=await VerifiedUserAsync(cancellation).ConfigureAwait(false);store.BindSyncAccount(uid,remote.Origin);var result=new SyncResult();
                 foreach(var work in store.GetWorks())
                 {
                     cancellation.ThrowIfCancellationRequested();SyncJob job;

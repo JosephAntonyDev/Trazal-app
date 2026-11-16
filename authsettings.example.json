@@ -1,7 +1,7 @@
 {
   "apiKey": "",
-  "projectId": "",
-  "apiOrigin": "",
+  "projectId": "trazal-773ba",
+  "apiOrigin": "https://trazal-api.trazaldev.workers.dev",
   "googleDesktopClientId": "",
   "googleDesktopClientSecret": ""
 }

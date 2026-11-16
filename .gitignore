@@ -15,5 +15,6 @@ artifacts/
 *.pfx
 *.key
 authsettings.json
+authsettings.json.*.tmp
 client_secret*.json
 *.session

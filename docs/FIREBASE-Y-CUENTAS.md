@@ -1,4 +1,4 @@
-# Firebase y cuentas · escritorio 0.6.1
+# Firebase y cuentas · escritorio 0.6.2
 
 Actualizado el 15/11/2026. Firebase `trazal-773ba` ya existe y tiene Correo/contraseña y Google habilitados. El Worker está publicado en `https://trazal-api.trazaldev.workers.dev`; el flujo autenticado real sigue pendiente. Consulta [la guía del equipo](CONEXION-Y-CONTINUIDAD.md).
 
@@ -26,9 +26,20 @@ Copia `authsettings.example.json` a `authsettings.json` **junto a Trazal.exe** y
 }
 ```
 
-`apiOrigin` utiliza ahora el origen publicado indicado arriba, sin `/v1`, `/health` ni barra final. Dejarlo vacío mantiene deshabilitada la sincronización. Se puede probar la cuenta Firebase antes de disponer de PostgreSQL. Reinicia Trazal después de configurar. Alternativas de desarrollo: variables de entorno `TRAZAL_FIREBASE_API_KEY`, `TRAZAL_FIREBASE_PROJECT_ID` y `TRAZAL_API_ORIGIN`. Las variables prevalecen sobre el archivo. El archivo real está ignorado en Git; el ejemplo contiene valores vacíos.
+`apiOrigin` utiliza ahora el origen publicado indicado arriba, sin `/v1`, `/health` ni barra final. Dejarlo vacío mantiene deshabilitada la sincronización. Se puede probar la cuenta Firebase antes de disponer de PostgreSQL. Reinicia Trazal después de configurar. Alternativas de desarrollo: variables de entorno `TRAZAL_FIREBASE_API_KEY`, `TRAZAL_FIREBASE_PROJECT_ID` y `TRAZAL_API_ORIGIN`. Las variables prevalecen sobre el archivo. El archivo real está ignorado en Git; el ejemplo incluye proyecto y origen públicos, y deja vacíos la API key y los campos OAuth.
 
 En el Worker, `FIREBASE_PROJECT_ID` debe ser el mismo proyecto. El backend está en [Trazal-API-TS](https://github.com/JosephAntonyDev/Trazal-API-TS); la carpeta antigua `backend/` de este repositorio es histórica y no debe desplegarse ni modificarse para continuar el desarrollo.
+
+## Preparar la configuración desde PowerShell (0.6.2)
+
+Si ya existe `authsettings.json` en la raíz, ejecuta `./configure-auth.ps1` para conservar sus credenciales y configurar el origen publicado. Después compila y reinicia la aplicación. Para importar Google:
+
+```powershell
+.\configure-auth.ps1 -OAuthJson 'C:\ruta\client_secret_trazal_desktop.json'
+.\build.ps1 -Test -Package
+```
+
+El script exige un cliente `installed` del mismo `project_id`, rechaza clientes Web o de otro proyecto y valida el origen HTTPS. No imprime las credenciales y valida antes de reemplazar atómicamente el archivo. No modifica Firebase, Neon ni los datos de usuario. Si se prepara un archivo desde cero, completar primero `apiKey` localmente desde Firebase o pasar el parámetro `-FirebaseApiKey` (identificador público de la app Web).
 
 ## Flujo del usuario
 

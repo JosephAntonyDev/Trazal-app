@@ -6,7 +6,7 @@ Es una vista previa funcional; **no tiene todavía todas las funciones del mocku
 
 ## Estado del equipo y conexión (15/11/2026)
 
-El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; falta probar login y sincronización real desde el escritorio.
+El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.2 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
 
 - [Guía de incorporación y conexión](docs/CONEXION-Y-CONTINUIDAD.md).
 - [Firebase, Google y separación de cuentas](docs/FIREBASE-Y-CUENTAS.md).
@@ -14,7 +14,7 @@ El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.de
 
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.6.1-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.1-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.6.2-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.2-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 
@@ -113,7 +113,13 @@ No se suben perfiles, preferencias ni archivos adjuntos. El piloto sincroniza do
 
 **Mi cuenta** incorpora inicio de sesión, registro, recuperación, envío de verificación, comprobación del correo y cierre de sesión. El módulo `Trazal.Identity` separa dominio, casos de uso, puertos y adaptadores; la vista WPF y su composición viven en `Modules/Identity`. El resto del escritorio mantiene sus capas anteriores, pendiente de migración modular gradual.
 
-Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. La versión 0.6.1 incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; falta configurar su origen en las instalaciones del escritorio y validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
+Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. Desde la versión 0.6.1 se incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; el paquete local 0.6.2 ya incluye su origen. Los clones nuevos requieren configuración local; falta validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
+
+## Conexión al piloto (0.6.2)
+
+**Sincronización → Comprobar conexión** valida el acceso autenticado al backend/base y que su UID corresponda al espacio local; no envía ni descarga obras. La pantalla explica si falta iniciar sesión, confirmar correo, comprobar la sesión o configurar el origen. Muestra el resultado de la operación y mensajes de red sin exponer excepciones internas. Sincronizar sigue siendo una acción manual separada.
+
+`configure-auth.ps1` prepara la configuración local e importa opcionalmente el JSON OAuth de escritorio, verificando el proyecto antes de reemplazar el archivo. El ejemplo incluye el origen público. Credenciales y configuración real permanecen fuera de Git. Se aprobaron 104 pruebas de escritorio y las comprobaciones adicionales del script; la validación autenticada real sigue pendiente.
 
 ## Próximo hito
 

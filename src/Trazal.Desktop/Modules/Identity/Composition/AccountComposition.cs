@@ -41,12 +41,13 @@ namespace Trazal.Desktop.Modules.Identity.Composition
             var store = new LocalStore(path);
             var shell = new ShellViewModel(store);
             shell.ConfigureAccount(session, config.IsConfigured, configurationMessage, () => Open(true), google);
+            shell.ConfigureSyncAvailability(config.ApiOrigin);
             cloud?.Dispose(); cloud = null;
             if (identity != null && identity.EmailVerified && !session.NeedsOnlineCheck && !string.IsNullOrWhiteSpace(config.ApiOrigin))
             {
                 // The local identity is checked by Firebase; the Worker independently verifies each ID token.
                 cloud = new CloudClient(config.ApiOrigin, session.GetIdTokenAsync);
-                shell.ConfigureSync(cloud);
+                shell.ConfigureSync(cloud, identity.Uid);
             }
             Theme.Apply(store.GetSetting("theme", "Sistema"));
             window.DataContext = shell;

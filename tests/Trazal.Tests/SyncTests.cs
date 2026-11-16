@@ -36,6 +36,47 @@ namespace Trazal.Tests
         }
         private static void SyncTests(string folder)
         {
+            Check("Comprobar conexión valida la cuenta sin subir ni vincular obras",()=>{
+                var local=ReportFixture(Path.Combine(folder,"probe"));var remote=new FakeCloud();
+                var before=local.CaptureSyncDocument(local.GetWorks().Single().Id).ToJson();
+                new SyncEngine(local,remote,"test-user").CheckConnectionAsync(CancellationToken.None).GetAwaiter().GetResult();
+                Equal(0,remote.Writes);Equal(0,local.GetSyncStates().Count);Equal("0",local.SyncCursor);
+                Equal(before,local.CaptureSyncDocument(local.GetWorks().Single().Id).ToJson());
+                local.BindSyncAccount("another-user","https://another.test");
+            });
+            Check("Cuenta remota distinta del espacio se rechaza antes de enviar",()=>{
+                var local=ReportFixture(Path.Combine(folder,"identity-guard"));var remote=new FakeCloud{User="wrong-user"};
+                var engine=new SyncEngine(local,remote,"expected-user");
+                foreach(var action in new Func<Task>[] {()=>engine.CheckConnectionAsync(CancellationToken.None),()=>engine.RunAsync(CancellationToken.None)})
+                {
+                    bool rejected=false;try{action().GetAwaiter().GetResult();}catch(CloudException ex){Equal("identity_mismatch",ex.Code);rejected=true;}
+                    Equal(true,rejected);
+                }
+                Equal(0,remote.Writes);Equal(0,local.GetSyncStates().Count);Equal("0",local.SyncCursor);
+                local.BindSyncAccount("expected-user",remote.Origin);
+            });
+            Check("Respuesta remota sin UID no habilita conexión",()=>{
+                var local=new LocalStore(Path.Combine(folder,"empty-uid.db"));var remote=new FakeCloud{User=""};
+                bool rejected=false;try{new SyncEngine(local,remote).CheckConnectionAsync(CancellationToken.None).GetAwaiter().GetResult();}catch(CloudException){rejected=true;}
+                Equal(true,rejected);Equal(0,remote.Writes);
+            });
+            Check("Sincronización explica sesión, correo y servidor pendientes",()=>{
+                var local=new LocalStore(Path.Combine(folder,"readiness.db"));var shell=new ShellViewModel(local);
+                shell.ConfigureAccount(null,true,"",()=>{});shell.ShowSync.Execute(null);
+                Equal(true,((SyncViewModel)shell.Page).Guidance.Contains("Inicia sesión"));
+                var provider=new FakeIdentity{Verified=false};var session=new Trazal.Identity.Application.AccountSession(provider,new MemorySession(),provider.Clock);
+                Login(session);shell.ConfigureAccount(session,true,"",()=>{});shell.ShowSync.Execute(null);
+                Equal(true,((SyncViewModel)shell.Page).Guidance.Contains("Confirma tu correo"));
+                provider.Verified=true;session.CheckIdentityAsync(CancellationToken.None).GetAwaiter().GetResult();shell.ShowSync.Execute(null);
+                Equal(true,((SyncViewModel)shell.Page).Guidance.Contains("Falta configurar el servidor"));
+                Equal(false,((SyncViewModel)shell.Page).CheckConnection.CanExecute(null));
+            });
+            Check("Comprobación de conexión muestra resultado y conserva obras locales",()=>{
+                var local=ReportFixture(Path.Combine(folder,"probe-ui"));var shell=new ShellViewModel(local);var remote=new FakeCloud();
+                shell.ConfigureSync(remote,"test-user");shell.CheckSyncConnection().GetAwaiter().GetResult();
+                var view=(SyncViewModel)shell.Page;Equal(true,view.HasResult);Equal(true,view.Result.Contains("No se enviaron"));
+                Equal(0,remote.Writes);Equal(false,shell.IsBusy);Equal(true,view.CheckConnection.CanExecute(null));
+            });
             var db=ReportFixture(Path.Combine(folder,"cloud-source"));var w=db.GetWorks().Single();
             Check("Contrato de sincronización conserva decimales, fechas y el programa",()=>{var snapshot=db.CaptureSyncDocument(w.Id);snapshot.Validate();var restored=SyncJson.Read<SyncDocument>(snapshot.ToJson());Equal(snapshot.ToJson(),restored.ToJson());Equal("100",restored.Concepts.Single().Quantity);Equal(true,restored.Frozen);});
             Check("Cuenta vinculada no puede cambiar de usuario ni servidor",()=>{db.BindSyncAccount("test-user","https://sync.test");bool failed=false;try{db.BindSyncAccount("other","https://sync.test");}catch(InvalidOperationException){failed=true;}Equal(true,failed);failed=false;try{db.BindSyncAccount("test-user","https://other.test");}catch(InvalidOperationException){failed=true;}Equal(true,failed);});
