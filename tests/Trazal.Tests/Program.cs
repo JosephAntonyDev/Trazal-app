@@ -76,7 +76,7 @@ namespace Trazal.Tests
                     var savedExpense=db.GetExpenses(w2.Id).Single();Equal(0m,savedExpense.Vat);Equal(100m,savedExpense.Total);Equal(new DateTime(2026,11,13),savedExpense.Date);
                     shell.EditExpense(w2,savedExpense);shell.Dialog.Fields.Single(f=>f.Key=="vat").Value="";Equal(false,shell.Dialog.Save.CanExecute(null));shell.Dialog.Cancel.Execute(null);
                 });
-                Workflows(folder); ReportingTests(folder); SyncTests(folder); IdentityTests(folder);
+                Workflows(folder); ReportingTests(folder); SyncTests(folder); IdentityTests(folder); LocalWorkCopyTests(folder);
                 Console.WriteLine(passed + " pruebas aprobadas."); return 0;
             }
             catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }

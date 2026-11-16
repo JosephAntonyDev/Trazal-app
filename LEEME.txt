@@ -64,3 +64,5 @@ Google requiere un cliente OAuth Desktop del proyecto Firebase correcto; habilit
 
 NOVEDADES 0.6.4
 Menú completo en ventanas estrechas, filtros adaptables, tablas con anchos legibles y modales limitadas al área de ventana. Google ya está configurado en este paquete local. Prueba Mi cuenta > Continuar con Google; el inicio real aún no está verificado.
+
+0.6.5: Mi cuenta / Sincronización → Copiar obras locales. Selecciona y confirma tu cuenta; conserva originales y crea respaldo. No sube a la nube automáticamente.

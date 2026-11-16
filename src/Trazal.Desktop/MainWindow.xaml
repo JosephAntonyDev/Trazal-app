@@ -2,6 +2,37 @@
   <Window.Resources>
     <vm:PageMinimumHeightConverter x:Key="PageMinimumHeight"/>
     <DataTemplate xmlns:account="clr-namespace:Trazal.Desktop.Modules.Identity.Presentation" DataType="{x:Type account:AccountViewModel}"><account:AccountView/></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:LocalWorkCopyViewModel}">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28,24">
+          <TextBlock Text="Lleva tus obras a tu cuenta" Style="{StaticResource Heading}" TextWrapping="Wrap"/>
+          <TextBlock Text="Copia las obras que empezaste sin iniciar sesión. Los originales se conservan y no se reemplaza ninguna obra de tu cuenta." Foreground="{DynamicResource Muted}" Margin="0,12,0,18" TextWrapping="Wrap"/>
+          <Border Style="{StaticResource Card}" Padding="18" Margin="0,0,0,16">
+            <StackPanel>
+              <TextBlock Text="{Binding Destination}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+              <TextBlock Text="Incluye presupuesto, programa aprobado, avances y gastos. Se prepara un respaldo antes de copiar. El perfil y las preferencias de tu cuenta se conservan." Margin="0,8,0,0" TextWrapping="Wrap"/>
+              <TextBlock Text="Esta lista refleja las obras al abrir la vista. Reabre para incluir cambios recientes. No se sube nada a la nube en este paso." Foreground="{DynamicResource Muted}" FontSize="13" Margin="0,8,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+          </Border>
+          <WrapPanel Margin="0,0,0,12"><Button Content="Seleccionar disponibles" Command="{Binding SelectAll}" Margin="0,0,12,8"/><Button Content="Quitar selección" Command="{Binding Clear}" Margin="0,0,12,8"/><TextBlock Text="{Binding Summary}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"/></WrapPanel>
+          <TextBlock Text="No hay obras en tu espacio local original." Visibility="{Binding Empty,Converter={StaticResource BoolVisibility}}" Margin="0,8,0,16"/>
+          <ItemsControl ItemsSource="{Binding Rows}" IsEnabled="{Binding CanEdit}">
+            <ItemsControl.ItemTemplate><DataTemplate>
+              <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,10">
+                <CheckBox IsChecked="{Binding Include,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Available}" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding Title}">
+                  <StackPanel Margin="8,0,0,0"><TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="{Binding Detail}" FontSize="13" Foreground="{DynamicResource Muted}" Margin="0,6,0,0" TextWrapping="Wrap"/><TextBlock Text="{Binding State}" FontSize="13" Foreground="{DynamicResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap"/></StackPanel>
+                </CheckBox>
+              </Border>
+            </DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <CheckBox IsChecked="{Binding Confirmed}" IsEnabled="{Binding CanEdit}" Margin="0,14,0,16"><TextBlock Text="Confirmo que quiero copiar las obras seleccionadas a esta cuenta." TextWrapping="Wrap"/></CheckBox>
+          <WrapPanel><Button Content="Copiar seleccionadas" Style="{StaticResource Primary}" Command="{Binding Copy}" Margin="0,0,12,10"/><Button Content="Volver a mis obras" Command="{Binding Back}" Margin="0,0,0,10"/></WrapPanel>
+          <Border Style="{StaticResource Card}" Background="{DynamicResource Tint}" Padding="16" Margin="0,8,0,0" Visibility="{Binding HasResult,Converter={StaticResource BoolVisibility}}">
+            <StackPanel><TextBlock Text="{Binding Result}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/><TextBlock Text="Respaldo anterior a la copia:" FontWeight="SemiBold" Margin="0,12,0,6" Visibility="{Binding HasBackup,Converter={StaticResource BoolVisibility}}"/><TextBox Text="{Binding BackupPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" Visibility="{Binding HasBackup,Converter={StaticResource BoolVisibility}}" AutomationProperties.Name="Ubicación del respaldo anterior a la copia"/></StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vm:SyncViewModel}">
       <Grid Margin="28,24">
         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
@@ -16,6 +47,7 @@
             <WrapPanel>
               <Button Content="Ir a Mi cuenta" Command="{Binding Account}" Visibility="{Binding NeedsAccount,Converter={StaticResource BoolVisibility}}" Margin="0,0,12,8"/>
               <Button Content="Comprobar conexión" Command="{Binding CheckConnection}" Margin="0,0,12,8"/>
+              <Button Content="Copiar obras locales" Command="{Binding DataContext.CopyLocalWorks,RelativeSource={RelativeSource AncestorType=Window}}" Visibility="{Binding DataContext.CanOfferLocalCopy,RelativeSource={RelativeSource AncestorType=Window},Converter={StaticResource BoolVisibility}}" Margin="0,0,12,8"/>
               <Button Content="Sincronizar mis obras" Style="{StaticResource Primary}" Command="{Binding Run}" Margin="0,0,0,8"/>
             </WrapPanel>
             <Border Background="{DynamicResource Tint}" CornerRadius="8" Padding="14" Margin="0,10,0,0" Visibility="{Binding HasResult,Converter={StaticResource BoolVisibility}}">

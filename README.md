@@ -1,12 +1,14 @@
 # Trazal Desktop
 
+Para trabajar con el equipo: [guía de contribución, comprobaciones y tareas](CONTRIBUTING.md).
+
 Primera base ejecutable del producto, iniciada el 13 de noviembre de 2026 con autorización de Joseph. **C# + WPF + .NET Framework 4.8 + SQLite local.** Conserva la identidad amarilla y los flujos del mockup React, con controles nativos y sin WebView.
 
 Es una vista previa funcional; **no tiene todavía todas las funciones del mockup** ni está aprobada para presupuestos reales.
 
 ## Estado del equipo y conexión (15/11/2026)
 
-El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.4 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
+El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; el paquete local 0.6.5 incluye el origen y permite comprobar la conexión. Falta probar login y sincronización real desde el escritorio.
 
 - [Guía de incorporación y conexión](docs/CONEXION-Y-CONTINUIDAD.md).
 - [Firebase, Google y separación de cuentas](docs/FIREBASE-Y-CUENTAS.md).
@@ -18,7 +20,7 @@ En **Mi cuenta** están inicio de sesión, registro, recuperación y Google. Con
 
 ## Abrir la vista previa
 
-Ejecuta `artifacts/Trazal-0.6.4-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.4-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
+Ejecuta `artifacts/Trazal-0.6.5-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.5-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
 
 Requiere **.NET Framework 4.8**. El destino previsto es Windows 7 **SP1**, tanto x86 como x64 mediante AnyCPU y los binarios SQLite correspondientes. La compilación y las pruebas realizadas en el equipo de desarrollo **no certifican Windows 7**: hay que comprobar runtime, DLL nativa y renderizado en el equipo real. RAM de diseño: 4 GB; arquitectura del ingeniero, SP1 y rendimiento pendientes de confirmar. [Requisitos de Microsoft](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements).
 
@@ -141,3 +143,17 @@ Los archivos del cliente quedan fuera del repositorio. Este código se mantiene 
 - Filtros y tarjetas se reorganizan por ancho disponible. En ventanas bajas, las pantallas de tablas conservan una altura útil y se recorren verticalmente; las tablas amplias mantienen su desplazamiento horizontal y anchos mínimos legibles. Las modales se limitan al espacio disponible y conservan sus acciones.
 - Se revisaron renders de inicio, perfil, cuenta, presupuesto, gastos, programa y creación a 680, 911, 1024, 1366 y 1920 unidades de ancho, en ambos temas. 911 unidades sirve como aproximación del espacio de una pantalla 1366 con escala 150 %; no es una prueba de cambio de DPI real del sistema ni de Windows 7.
 - Se recibió e importó el cliente OAuth Desktop del proyecto correcto **trazal-773ba** mediante `configure-auth.ps1`. El paquete local incluye la configuración ignorada por Git. El JSON y el secreto no se versionan; clones nuevos necesitan configurar su archivo local. Falta completar el login real con el usuario y comprobar sincronización autenticada.
+
+
+## Copiar obras locales a una cuenta (0.6.5, 16/11/2026)
+
+Después de iniciar sesión y comprobar el correo, abre **Mi cuenta → Copiar obras de mi espacio local** o **Sincronización → Copiar obras locales**. Selecciona las obras, revisa el correo de destino, marca la confirmación y pulsa **Copiar seleccionadas**. El espacio local original sigue intacto al cerrar sesión.
+
+- Copia presupuesto, programa (incluida su aprobación), avances y gastos; conserva identificadores para detectar obras ya copiadas. No reemplaza una obra existente en la cuenta aunque sea distinta; la muestra como ya presente. Las colisiones internas inesperadas revierten el lote completo.
+- Antes de escribir crea `Antes-de-copiar-obras-<fecha>-<id>.trazal` junto a la base de la cuenta. La pantalla muestra su ubicación al terminar. Si falla el respaldo o una inserción, no se aplica un lote parcial.
+- La lista usa una instantánea validada al abrir la vista. Cambios posteriores del espacio original requieren salir y abrirla de nuevo. Se descarta la instantánea al salir/cerrar; el respaldo de seguridad se conserva.
+- No copia el perfil, preferencias, cola, revisiones ni vinculación del espacio original. Rechaza fuentes vinculadas a otra cuenta. Solo se ofrece para una identidad comprobada; no abre un selector de bases ajenas.
+- Es una copia **local entre espacios de este usuario de Windows**; no realiza solicitudes a Firebase/Neon. Para subir después, pulsar **Sincronizar mis obras**. Siguen vigentes los límites remotos y la revisión de conflictos si la misma obra ya existe en la nube.
+- El cierre normal de la ventana se aplaza mientras una operación está en curso, para no desechar la instantánea durante una copia.
+
+Validación: 116 pruebas locales aprobadas (7 nuevas sobre copia, reintento, instantánea/cancelación, rollback de lote, selección/destino, UID y confirmación). La copia también pasa por el motor de sincronización simulado. Pantalla revisada en claro/oscuro a 680×480, 1024×680 y 1366×768, con acceso al pie mediante scroll. No sustituye la prueba de Google/Neon reales ni la de Windows 7.
