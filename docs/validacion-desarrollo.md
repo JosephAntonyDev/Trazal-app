@@ -1,4 +1,6 @@
-# Validación de la vista previa 0.1
+# Registro histórico de validación de la vista previa 0.1
+
+Este registro corresponde al 13/11/2026, no al alcance actual 0.6.1. Importación, PDF/XLSX y restauración ya se implementaron después. Consulta el [README actual](../README.md) y [Conexión y continuidad](CONEXION-Y-CONTINUIDAD.md) para el estado vigente; las pruebas en Windows 7 real siguen pendientes.
 
 Fecha: 13 de noviembre de 2026. Entorno: equipo de desarrollo actual, **no Windows 7**.
 
@@ -22,7 +24,7 @@ Una prueba inicial detectó un comando SQLite sin liberar que retenía el archiv
 
 Los datos de QA viven fuera del producto distribuido, en `.qa/data`, ignorados por Git. El ZIP no lleva obras de ejemplo ni hojas de cálculo del ingeniero.
 
-## Aún no validado
+## Pendientes registrados en esa fecha (histórico)
 
 - Windows 7 SP1 real, proceso de 32 bits, carga SQLite en ese sistema, requisitos gráficos y de runtime.
 - Rendimiento en 4 GB, apertura en frío y miles de conceptos; no hay métricas mínimas garantizadas.

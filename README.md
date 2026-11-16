@@ -4,6 +4,14 @@ Primera base ejecutable del producto, iniciada el 13 de noviembre de 2026 con au
 
 Es una vista previa funcional; **no tiene todavía todas las funciones del mockup** ni está aprobada para presupuestos reales.
 
+## Estado del equipo y conexión (15/11/2026)
+
+El backend 0.6.0 ya está desplegado en `https://trazal-api.trazaldev.workers.dev`, con Firebase `trazal-773ba` e Hyperdrive hacia Neon. `/health` y el rechazo de acceso sin sesión están comprobados; falta probar login y sincronización real desde el escritorio.
+
+- [Guía de incorporación y conexión](docs/CONEXION-Y-CONTINUIDAD.md).
+- [Firebase, Google y separación de cuentas](docs/FIREBASE-Y-CUENTAS.md).
+- [Estado completo de infraestructura y procedimiento](https://github.com/JosephAntonyDev/Trazal-API-TS/blob/main/docs/ESTADO-Y-CONTINUIDAD.md).
+
 ## Abrir la vista previa
 
 Ejecuta `artifacts/Trazal-0.6.1-preview/Trazal.exe` después de compilar. Para compartir con el equipo, extrae **todo** `artifacts/Trazal-0.6.1-preview.zip`; conserva las DLL y subcarpetas x86/x64. No es un instalador y no incorpora .NET Framework.
@@ -56,7 +64,7 @@ La compilación del script se guarda en `build/output/Release/app` y las pruebas
 
 La primera ejecución descarga **paquetes oficiales de NuGet en `build/packages`**, fijados por versión y SHA-256; las posteriores pueden usar la caché sin internet. No instala herramientas globales ni usa un .NET SDK moderno. Referencias de compilación 4.8 a través de NuGet; runtime del cliente por separado. Abre `Trazal.sln` después de preparar las dependencias y selecciona Trazal.Desktop como proyecto de inicio.
 
-94 pruebas ejecutables verifican importación, cálculos, programa, avances, reportes, respaldos, sincronización e identidad. Incluyen renovación concurrente, aislamiento de cuentas, DPAPI y contrato HTTP de Firebase con respuestas de prueba. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario.
+Las pruebas ejecutables verifican importación, cálculos, programa, avances, reportes, respaldos, sincronización e identidad. Incluyen renovación concurrente, aislamiento de cuentas, DPAPI, contrato HTTP de Firebase con respuestas de prueba y el flujo local OAuth/PKCE de Google. Se ejecutan en una carpeta temporal aislada y no modifican los datos del usuario; no sustituyen las pruebas con servicios reales.
 
 ## Estructura
 
@@ -105,14 +113,14 @@ No se suben perfiles, preferencias ni archivos adjuntos. El piloto sincroniza do
 
 **Mi cuenta** incorpora inicio de sesión, registro, recuperación, envío de verificación, comprobación del correo y cierre de sesión. El módulo `Trazal.Identity` separa dominio, casos de uso, puertos y adaptadores; la vista WPF y su composición viven en `Modules/Identity`. El resto del escritorio mantiene sus capas anteriores, pendiente de migración modular gradual.
 
-Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. La versión 0.6.1 incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. Falta validar los proveedores con cuentas reales y conectar el Worker. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
+Cada proyecto/UID abre un SQLite independiente, conservando el espacio local original. Recordar sesión es opcional y utiliza DPAPI del usuario de Windows. No se guardan contraseñas. La versión 0.6.1 incorpora **Continuar con Google** mediante navegador del sistema, PKCE y retorno loopback, con cancelación y caducidad. Requiere el cliente OAuth de tipo escritorio en el mismo proyecto Firebase. El Worker ya está publicado; falta configurar su origen en las instalaciones del escritorio y validar ambos proveedores y la sincronización con cuentas reales. [Pasos de configuración, flujo y arquitectura](docs/FIREBASE-Y-CUENTAS.md).
 
 ## Próximo hito
 
 1. Probar en el Windows 7 SP1 real, incluyendo exportación PDF/XLSX y restauración. Registrar arquitectura, RAM, escala, rendimiento y errores. La compatibilidad no está certificada por compilar contra .NET 4.8.
 2. Contrastar cifras con el ingeniero y el Excel autorizado; acordar redondeo, indirectos/utilidad y criterio contable de gastos.
 3. Correcciones de avances con historial; ampliar formatos de importación y evaluar importación del programa original.
-4. Configurar y validar Firebase Auth real, desplegar Worker/PostgreSQL y medir CPU/costos. Añadir resolución de conflictos y traslado explícito del espacio local a una cuenta.
+4. Configurar el origen publicado en el escritorio y validar Firebase Auth y lectura/escritura real mediante Worker/Hyperdrive/Neon; medir CPU/costos. Añadir resolución de conflictos y traslado explícito del espacio local a una cuenta.
 5. Generar instalador, actualizaciones y licenciamiento; medir grandes catálogos antes de producción.
 
 Los archivos del cliente quedan fuera del repositorio. Este código se mantiene en un repositorio local independiente; no se publica automáticamente en el repo público del mockup. Dependencias y términos: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

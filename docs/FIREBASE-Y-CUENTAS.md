@@ -1,6 +1,8 @@
-# Firebase y cuentas · preparación 0.6.1
+# Firebase y cuentas · escritorio 0.6.1
 
-## Lo que debes enviar
+Actualizado el 15/11/2026. Firebase `trazal-773ba` ya existe y tiene Correo/contraseña y Google habilitados. El Worker está publicado en `https://trazal-api.trazaldev.workers.dev`; el flujo autenticado real sigue pendiente. Consulta [la guía del equipo](CONEXION-Y-CONTINUIDAD.md).
+
+## Preparar Firebase en una instalación nueva
 
 1. Abre [Firebase Console](https://console.firebase.google.com/) y crea un proyecto **Trazal**, o elige el proyecto que ya tengas. Analytics no es necesario para este flujo.
 2. En **Authentication → Comenzar → Método de acceso**, habilita **Correo electrónico/contraseña**. El acceso sin contraseña mediante enlace no se utiliza en esta versión.
@@ -17,14 +19,14 @@ Copia `authsettings.example.json` a `authsettings.json` **junto a Trazal.exe** y
 ```json
 {
   "apiKey": "valor-de-firebase",
-  "projectId": "id-del-proyecto",
-  "apiOrigin": "",
+  "projectId": "trazal-773ba",
+  "apiOrigin": "https://trazal-api.trazaldev.workers.dev",
   "googleDesktopClientId": "",
   "googleDesktopClientSecret": ""
 }
 ```
 
-`apiOrigin` se deja vacío hasta desplegar el Worker; posteriormente será su origen HTTPS, sin `/v1`. Se puede probar la cuenta Firebase antes de disponer de PostgreSQL. Reinicia Trazal después de configurar. Alternativas de desarrollo: variables de entorno `TRAZAL_FIREBASE_API_KEY`, `TRAZAL_FIREBASE_PROJECT_ID` y `TRAZAL_API_ORIGIN`. Las variables prevalecen sobre el archivo. El archivo real está ignorado en Git; el ejemplo contiene valores vacíos.
+`apiOrigin` utiliza ahora el origen publicado indicado arriba, sin `/v1`, `/health` ni barra final. Dejarlo vacío mantiene deshabilitada la sincronización. Se puede probar la cuenta Firebase antes de disponer de PostgreSQL. Reinicia Trazal después de configurar. Alternativas de desarrollo: variables de entorno `TRAZAL_FIREBASE_API_KEY`, `TRAZAL_FIREBASE_PROJECT_ID` y `TRAZAL_API_ORIGIN`. Las variables prevalecen sobre el archivo. El archivo real está ignorado en Git; el ejemplo contiene valores vacíos.
 
 En el Worker, `FIREBASE_PROJECT_ID` debe ser el mismo proyecto. El backend está en [Trazal-API-TS](https://github.com/JosephAntonyDev/Trazal-API-TS); la carpeta antigua `backend/` de este repositorio es histórica y no debe desplegarse ni modificarse para continuar el desarrollo.
 
@@ -74,7 +76,7 @@ Fuentes oficiales: [configuración de Firebase](https://firebase.google.com/docs
 
 ## Configurar Google para escritorio
 
-El proveedor Google ya está habilitado en Firebase. Además hace falta el cliente OAuth nativo; la configuración de la app Web que compartiste no contiene estos campos.
+El proveedor Google ya está habilitado en Firebase. El JSON recibido anteriormente pertenecía a `trazal-773ba-514820`, diferente de `trazal-773ba`; no se aplicó. Sigue pendiente obtener/configurar el cliente Desktop correcto y probarlo. Además hace falta el cliente OAuth nativo; la configuración de la app Web que compartiste no contiene estos campos.
 
 1. Abre [Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients?project=trazal-773ba). Confirma el proyecto **trazal-773ba** arriba.
 2. Si pide configurar la plataforma, usa nombre **Trazal**, correo de soporte y contacto del equipo. En **Audience / Público**, elige externo si no es una app exclusiva de tu organización. Para el piloto conserva modo de pruebas y añade los correos del equipo como usuarios de prueba cuando corresponda.
