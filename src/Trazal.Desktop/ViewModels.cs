@@ -181,6 +181,7 @@ namespace Trazal.Desktop
                 Set(ref page, value);
                 Notify(nameof(IsWorksSection));
                 Notify(nameof(IsProfileSection));
+                Notify(nameof(IsBudgetSection));
                 Notify(nameof(IsSyncSection));
                 Notify(nameof(IsAccountSection));
             }
@@ -211,6 +212,7 @@ namespace Trazal.Desktop
             Backup = new ActionCommand(async _ => await SaveBackup(), _ => !busy);
             ManageBackups = new ActionCommand(_ => OpenBackupOptions(), _ => !busy && !DialogOpen);
             RestoreBackup = new ActionCommand(async _ => await ChooseRestore(), _ => !busy && !DialogOpen);
+            ConfigureBudget();
             OpenHome();
         }
         private void Safe(Action action) { try { action(); } catch (Exception ex) { Status = "No se completó la operación: " + ex.Message; } }

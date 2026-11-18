@@ -49,6 +49,10 @@
     <Compile Include="Modules\Identity\Presentation\AccountViewModel.cs"/>
     <Compile Include="Modules\Identity\Presentation\AccountCommands.cs"/>
     <Compile Include="Modules\Identity\Composition\AccountComposition.cs"/>
+    <Page Include="Modules\Presupuesto\Presentation\BudgetView.xaml"/>
+    <Compile Include="Modules\Presupuesto\Presentation\BudgetView.xaml.cs"/>
+    <Compile Include="Modules\Presupuesto\Presentation\BudgetViewModel.cs"/>
+    <Compile Include="Modules\Presupuesto\Presentation\BudgetCommands.cs"/>
     <Page Include="MainWindow.xaml" />
     <Page Include="Styles.xaml" />
     <Page Include="DateControls.xaml" />
