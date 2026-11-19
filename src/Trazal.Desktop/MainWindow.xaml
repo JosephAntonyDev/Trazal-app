@@ -488,6 +488,7 @@
       </ScrollViewer>
     </DataTemplate>
     <DataTemplate xmlns:budget="clr-namespace:Trazal.Desktop.Modules.Presupuesto.Presentation" DataType="{x:Type budget:BudgetViewModel}"><budget:BudgetView/></DataTemplate>
+    <DataTemplate xmlns:pgm="clr-namespace:Trazal.Desktop.Modules.Programa.Presentation" DataType="{x:Type pgm:ProgramaViewModel}"><pgm:ProgramaView/></DataTemplate>
   </Window.Resources>
   <Grid>
     <Grid x:Name="Workspace">
@@ -521,6 +522,7 @@
               <ContextMenu Background="{DynamicResource Surface}" Foreground="{DynamicResource Ink}" BorderBrush="{DynamicResource Line}" FontSize="16" DataContext="{Binding PlacementTarget.DataContext,RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="Mis obras" Command="{Binding Home}" IsChecked="{Binding IsWorksSection}"/>
                 <MenuItem Header="Presupuesto" Command="{Binding ShowBudget}" IsChecked="{Binding IsBudgetSection}"/>
+                <MenuItem Header="Programa" Command="{Binding ShowPrograma}" IsChecked="{Binding IsProgramaSection}"/>
                 <MenuItem Header="Mi perfil" Command="{Binding ShowProfile}" IsChecked="{Binding IsProfileSection}"/>
                 <MenuItem Header="Mi cuenta" Command="{Binding ShowAccount}" IsChecked="{Binding IsAccountSection}"/>
                 <MenuItem Header="Sincronización" Command="{Binding ShowSync}" IsChecked="{Binding IsSyncSection}"/>
@@ -552,8 +554,9 @@
             </StackPanel>
             <StackPanel>
               <TextBlock Text="ESPACIO DE TRABAJO" FontSize="11" Foreground="{DynamicResource Muted}" Margin="8,0,0,20" />
-              <Button Content="Mis obras" Command="{Binding Home}" Style="{StaticResource NavigationItem}" Tag="{Binding IsWorksSection}" />
-              <Button Content="Presupuesto" Command="{Binding ShowBudget}" Style="{StaticResource NavigationItem}" Tag="{Binding IsBudgetSection}" Margin="0,8,0,0" />
+              <Button Content="Mis obras"    Command="{Binding Home}"        Style="{StaticResource NavigationItem}" Tag="{Binding IsWorksSection}" />
+              <Button Content="Presupuesto" Command="{Binding ShowBudget}"   Style="{StaticResource NavigationItem}" Tag="{Binding IsBudgetSection}"  Margin="0,8,0,0" />
+              <Button Content="Programa"    Command="{Binding ShowPrograma}"  Style="{StaticResource NavigationItem}" Tag="{Binding IsProgramaSection}" Margin="0,8,0,0" />
               <Button Content="Mi perfil" Command="{Binding ShowProfile}" Style="{StaticResource NavigationItem}" Tag="{Binding IsProfileSection}" Margin="0,8,0,0" />
               <Button Content="Sincronización" Command="{Binding ShowSync}" Style="{StaticResource NavigationItem}" Tag="{Binding IsSyncSection}" Margin="0,8,0,0" />
               <Button Content="Mi cuenta" Command="{Binding ShowAccount}" Style="{StaticResource NavigationItem}" Tag="{Binding IsAccountSection}" Margin="0,8,0,0" />

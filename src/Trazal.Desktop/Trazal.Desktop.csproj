@@ -53,6 +53,10 @@
     <Compile Include="Modules\Presupuesto\Presentation\BudgetView.xaml.cs"/>
     <Compile Include="Modules\Presupuesto\Presentation\BudgetViewModel.cs"/>
     <Compile Include="Modules\Presupuesto\Presentation\BudgetCommands.cs"/>
+    <Page Include="Modules\Programa\Presentation\ProgramaView.xaml"/>
+    <Compile Include="Modules\Programa\Presentation\ProgramaView.xaml.cs"/>
+    <Compile Include="Modules\Programa\Presentation\ProgramaViewModel.cs"/>
+    <Compile Include="Modules\Programa\Presentation\ProgramaCommands.cs"/>
     <Page Include="MainWindow.xaml" />
     <Page Include="Styles.xaml" />
     <Page Include="DateControls.xaml" />

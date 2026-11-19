@@ -8,10 +8,8 @@
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
-      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
-    <!-- Encabezado -->
     <DockPanel Margin="0,0,0,20">
       <Button DockPanel.Dock="Right"
               Content="＋  Agregar concepto"
@@ -25,7 +23,6 @@
       </StackPanel>
     </DockPanel>
 
-    <!-- Tarjeta de totales -->
     <Border Grid.Row="1" Style="{StaticResource Card}" Padding="20" Margin="0,0,0,16">
       <DockPanel>
         <TextBlock DockPanel.Dock="Right"
@@ -44,7 +41,6 @@
       </DockPanel>
     </Border>
 
-    <!-- Filtros de búsqueda -->
     <Border Grid.Row="2" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
       <vm:ResponsivePanel ColumnsLimit="2" MinimumItemWidth="260" Gap="14">
         <StackPanel>
@@ -61,7 +57,6 @@
       </vm:ResponsivePanel>
     </Border>
 
-    <!-- Tabla de conceptos -->
     <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
       <Grid>
         <DataGrid ItemsSource="{Binding Items}"
@@ -99,8 +94,6 @@
             </DataGridTemplateColumn>
           </DataGrid.Columns>
         </DataGrid>
-
-        <!-- Estado vacío -->
         <StackPanel Visibility="{Binding Empty, Converter={StaticResource BoolVisibility}}"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center"
@@ -120,19 +113,6 @@
                   HorizontalAlignment="Center" />
         </StackPanel>
       </Grid>
-    </Border>
-
-    <!-- Pie con total -->
-    <Border Grid.Row="4" Style="{StaticResource Card}" Background="{DynamicResource AccentSoft}"
-            Padding="20" Margin="0,16,0,0">
-      <DockPanel>
-        <TextBlock DockPanel.Dock="Right"
-                   Text="{Binding TotalImporte}"
-                   FontSize="24"
-                   FontWeight="SemiBold"
-                   VerticalAlignment="Center" />
-        <TextBlock Text="Total del catálogo (sin IVA)" VerticalAlignment="Center" />
-      </DockPanel>
     </Border>
   </Grid>
 </UserControl>
